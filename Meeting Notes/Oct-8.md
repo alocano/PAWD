@@ -8,7 +8,7 @@
 - work on parts
     - [x] IMU/Gyro
     - [x] Capacitive Touch
-    - [x] Stretch Resistor 
+    - [x] Flex/Stretch 
     - [ ] OLED (In Progress)
     - [ ] Prox (In Progress) 
 - Assignment 5: Gantt Chart
