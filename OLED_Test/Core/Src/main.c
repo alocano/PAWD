@@ -96,6 +96,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
+  //TO-DO: Output progress of each test on OLED display
   ssd1306_Init();
   uint32_t counter = 0;
   char text[20] = {0};
