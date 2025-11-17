@@ -1,0 +1,5 @@
+../Core/Src/tap.c:23:6:StartPreCapture	4	static
+../Core/Src/tap.c:29:6:PreCaptureTask	24	static
+../Core/Src/tap.c:50:6:PostCaptureTask	24	static
+../Core/Src/tap.c:70:6:ExportSensorData	24	static
+../Core/Src/tap.c:85:6:ProcessCapturedData	16	static
