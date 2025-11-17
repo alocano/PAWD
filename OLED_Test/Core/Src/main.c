@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -61,7 +62,79 @@ static void MX_I2C1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef enum{
+  Start_State,
+  Trans_State,
+  Taps_State,
+  Rot_State,
+  End_State
+}eSystemState;
 
+void StartHandler(uint32_t* counter){
+	*counter = 0;
+	ssd1306_Fill(0);
+  ssd1306_UpdateScreen();
+	ssd1306_SetCursor(0,1);
+  ssd1306_WriteString("Hello", Font_11x18, White);
+  ssd1306_UpdateScreen();
+  HAL_Delay(3*1000);
+}
+
+void TransHandler(){
+  //TO-DO: Implement state
+	ssd1306_Fill(0);
+	ssd1306_UpdateScreen();
+
+	ssd1306_SetCursor(1,1);
+  ssd1306_WriteString("Choose :D", Font_11x18, White);
+
+  ssd1306_SetCursor(1,20);
+  ssd1306_WriteString("1.Pronation", Font_11x18, White);
+
+  ssd1306_SetCursor(1,40);
+  ssd1306_WriteString("2.Taps", Font_11x18, White);
+  ssd1306_UpdateScreen();
+  HAL_Delay(3*1000);
+  ssd1306_Fill(0);
+  ssd1306_UpdateScreen();
+}
+
+void TapsHandler(uint32_t* counter){
+  //TO-DO: Implement state
+  ssd1306_SetCursor(1,1);
+  ssd1306_WriteString("Taps Count:", Font_11x18, White);
+  char text[20] = {0};
+  sprintf(text, "%ld", *counter);
+  ssd1306_SetCursor(1, 30);
+  ssd1306_WriteString(text, Font_11x18, White);
+  ssd1306_UpdateScreen();
+  (*counter)++;
+}
+void RotHandler(uint32_t* counter){
+   //TO-DO: Implement state
+  ssd1306_Fill(0);
+  ssd1306_UpdateScreen();
+  ssd1306_SetCursor(1,1);
+  ssd1306_WriteString("Rotations:", Font_11x18, White);
+  char text[20] = {0};
+  sprintf(text, "%ld", *counter);
+  ssd1306_SetCursor(1, 30);
+  ssd1306_WriteString(text, Font_11x18, White);
+  ssd1306_UpdateScreen();
+  (*counter)++;
+}
+void EndHandler(){
+  ssd1306_Fill(0);
+  ssd1306_UpdateScreen();
+  ssd1306_SetCursor(1,1);
+  ssd1306_WriteString("Goodbye :D", Font_11x18, White);
+  ssd1306_UpdateScreen();
+  HAL_Delay(3*1000);
+}
+/*void DelayHandler(){
+  //TO-DO: Implement state
+  HAL_Delay(3*1000);
+}*/
 /* USER CODE END 0 */
 
 /**
@@ -72,6 +145,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  eSystemState eNextState = Start_State;
 
   /* USER CODE END 1 */
 
@@ -100,9 +174,10 @@ int main(void)
   ssd1306_Init();
   uint32_t counter = 0;
   char text[20] = {0};
-  ssd1306_SetCursor(1,1);
-  ssd1306_WriteString("Hello World", Font_11x18, White);
-  ssd1306_UpdateScreen();
+  //original tester code
+  /*ssd1306_SetCursor(1,1);
+  ssd1306_WriteString("This is PAWD :D", Font_11x18, White);
+  ssd1306_UpdateScreen();*/
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -112,12 +187,32 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  sprintf(text, "%ld", counter);
-	  ssd1306_SetCursor(1, 25);
-	  ssd1306_WriteString(text, Font_11x18, White);
-	  ssd1306_UpdateScreen();
-	  counter++;
-	  HAL_Delay(1000);
+	  switch(eNextState){
+	    case Start_State:
+	      StartHandler(&counter);
+	      eNextState = Trans_State;
+	      break;
+      case Trans_State:
+	      TransHandler();
+	      eNextState = Taps_State;
+	      break;
+      case Taps_State:
+        TapsHandler(&counter);
+        eNextState = (counter < 9) ? Taps_State : End_State;
+        break;
+      case Rot_State:
+        RotHandler(&counter);
+        eNextState = (counter < 9) ? Rot_State : End_State;
+        break;
+      case End_State:
+        EndHandler();
+        eNextState = Start_State;
+        break;
+      default:
+        eNextState = Start_State;
+        break;
+	  }
+
   }
   /* USER CODE END 3 */
 }
