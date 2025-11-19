@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
+#include "FunctionState.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,18 +72,19 @@ typedef enum{
 }eSystemState;
 
 void StartHandler(uint32_t* counter){
-	*counter = 0;
+	/**counter = 0;
 	ssd1306_Fill(0);
   ssd1306_UpdateScreen();
 	ssd1306_SetCursor(0,1);
   ssd1306_WriteString("Hello", Font_11x18, White);
   ssd1306_UpdateScreen();
-  HAL_Delay(3*1000);
+  HAL_Delay(3*1000);*/
+	Starth(counter);
 }
 
 void TransHandler(){
   //TO-DO: Implement state
-	ssd1306_Fill(0);
+	/*ssd1306_Fill(0);
 	ssd1306_UpdateScreen();
 
 	ssd1306_SetCursor(1,1);
@@ -96,23 +98,25 @@ void TransHandler(){
   ssd1306_UpdateScreen();
   HAL_Delay(3*1000);
   ssd1306_Fill(0);
-  ssd1306_UpdateScreen();
+  ssd1306_UpdateScreen();*/
+	TransH();
 }
 
 void TapsHandler(uint32_t* counter){
   //TO-DO: Implement state
-  ssd1306_SetCursor(1,1);
+  /*ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Taps Count:", Font_11x18, White);
   char text[20] = {0};
   sprintf(text, "%ld", *counter);
   ssd1306_SetCursor(1, 30);
   ssd1306_WriteString(text, Font_11x18, White);
   ssd1306_UpdateScreen();
-  (*counter)++;
+  (*counter)++;*/
+	TapsH(counter);
 }
 void RotHandler(uint32_t* counter){
    //TO-DO: Implement state
-  ssd1306_Fill(0);
+  /*ssd1306_Fill(0);
   ssd1306_UpdateScreen();
   ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Rotations:", Font_11x18, White);
@@ -121,15 +125,17 @@ void RotHandler(uint32_t* counter){
   ssd1306_SetCursor(1, 30);
   ssd1306_WriteString(text, Font_11x18, White);
   ssd1306_UpdateScreen();
-  (*counter)++;
+  (*counter)++;*/
+	RotH(counter);
 }
 void EndHandler(){
-  ssd1306_Fill(0);
+  /*ssd1306_Fill(0);
   ssd1306_UpdateScreen();
   ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Goodbye :D", Font_11x18, White);
   ssd1306_UpdateScreen();
-  HAL_Delay(3*1000);
+  HAL_Delay(3*1000);*/
+  EndH();
 }
 /*void DelayHandler(){
   //TO-DO: Implement state
