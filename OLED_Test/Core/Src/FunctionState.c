@@ -41,7 +41,6 @@ void TransH(){
   ssd1306_UpdateScreen();
 }
 void TapsH(uint32_t* counter){
-  //TO-DO: Implement state
   ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Taps Count:", Font_11x18, White);
   char text[20] = {0};
@@ -54,9 +53,6 @@ void TapsH(uint32_t* counter){
 
 
 void RotH(uint32_t* counter){
-   //TO-DO: Implement state
-  ssd1306_Fill(0);
-  ssd1306_UpdateScreen();
   ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Rotations:", Font_11x18, White);
   char text[20] = {0};

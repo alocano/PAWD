@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -200,8 +199,16 @@ int main(void)
 	      break;
       case Trans_State:
 	      TransHandler();
-	      eNextState = Taps_State;
-	      break;
+        //user input to determine next state, 1/PA9 for Taps, 2/PA10 for Rotation
+	      if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9)){
+				eNextState = Taps_State;
+				break;
+		  }
+		  if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_SET){
+			  eNextState = Rot_State;
+		  	  break;
+		  }
+		  break;
       case Taps_State:
         TapsHandler(&counter);
         eNextState = (counter < 9) ? Taps_State : End_State;
@@ -356,6 +363,7 @@ static void MX_USART2_UART_Init(void)
   */
 static void MX_GPIO_Init(void)
 {
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
 
   /* USER CODE END MX_GPIO_Init_1 */
@@ -364,6 +372,12 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pins : PA9 PA10 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9|GPIO_PIN_10;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
