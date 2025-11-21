@@ -13,6 +13,12 @@
 #include <stdio.h>
 #include "ssd1306.h"
 #include "ssd1306_fonts.h"
+#include "Adafruit_VCNL4020.h"
+
+extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c4;
+extern UART_HandleTypeDef huart3;
 
 void Starth(uint32_t* counter){
 	*counter = 0;
@@ -42,6 +48,28 @@ void TransH(){
 }
 void TapsH(uint32_t* counter){
   //TO-DO: Implement state
+	 VCNL4020_HandleTypeDef dev;
+	  VCNL4020_Init(&dev, &hi2c2);
+	  uint16_t proximity_data[1000];
+	  uint16_t data_index = 0;
+	  char tx_buffer[50];
+	if (VCNL4020_IsProxReady(&dev)){
+
+			  proximity_data[data_index] = VCNL4020_ReadProximity(&dev);
+
+			  sprintf(tx_buffer, "%d,%lu,%u\n", proximity_data[data_index], counter, data_index);
+
+			  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
+
+			  data_index++;
+
+			  if (counter >= 10){
+
+				  sprintf(tx_buffer, "END\n");
+				  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
+
+			  }
+		  }
   ssd1306_SetCursor(1,1);
   ssd1306_WriteString("Taps Count:", Font_11x18, White);
   char text[20] = {0};
@@ -49,7 +77,6 @@ void TapsH(uint32_t* counter){
   ssd1306_SetCursor(1, 30);
   ssd1306_WriteString(text, Font_11x18, White);
   ssd1306_UpdateScreen();
-  (*counter)++;
 }
 
 
@@ -64,7 +91,6 @@ void RotH(uint32_t* counter){
   ssd1306_SetCursor(1, 30);
   ssd1306_WriteString(text, Font_11x18, White);
   ssd1306_UpdateScreen();
-  (*counter)++;
 }
 void EndH(){
   ssd1306_Fill(0);
