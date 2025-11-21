@@ -22,23 +22,18 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Adafruit_VCNL4020.h"
-#include "tap.h"
 #include <stdio.h>
 #include <string.h>
-extern SensorBuffer_t pre_capture_buffer;
-extern SensorBuffer_t post_capture_buffer;
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 #define TAP_GPIO_Port GPIOG
 #define TAP_GPIO_Pin GPIO_PIN_0
-
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
 
 /* USER CODE END PD */
 
@@ -53,12 +48,12 @@ I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef huart3;
 
-// Serial transmission buffer
-char txBuffer[50];
-uint32_t lastSendTime = 0;
-const uint32_t SEND_INTERVAL = 100; // ms
-
 /* USER CODE BEGIN PV */
+
+volatile uint32_t count = 0;
+volatile uint8_t data_ready = 0;
+uint16_t proximity_data[1000];
+uint16_t data_index = 0;
 
 /* USER CODE END PV */
 
@@ -68,11 +63,6 @@ static void MX_GPIO_Init(void);
 static void MX_I2C2_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-/*!
- *  @brief #ifdef block allows use of printf for stdout.
- *  @see PUTCHAR_PROTOTYPE block in USER CODE BEGIN 0.
- *
- */
 #ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #else
@@ -82,44 +72,14 @@ static void MX_USART3_UART_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin);
-void sendProximityData(VCNL4020_HandleTypeDef *dev);
 
-VCNL4020_HandleTypeDef dev;
 
-int count = 0;
 
 
 PUTCHAR_PROTOTYPE {
 	HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
 	return ch;
 }
-
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == TAP_GPIO_Pin) {
-        if (HAL_GPIO_ReadPin(TAP_GPIO_Port, TAP_GPIO_Pin) == GPIO_PIN_RESET) {
-        	count ++;
-    }
-}
-
-
-void sendProximityData(VCNL4020_HandleTypeDef *dev) {
-    if (HAL_GetTick() - lastSendTime >= SEND_INTERVAL) {
-        // Read proximity data
-        uint16_t proximity = VCNL4020_ReadProximity(dev);
-
-        // Format: "PROXIMITY,<timestamp>,<value>"
-        sprintf(txBuffer, "PROXIMITY,%lu,%u\n", HAL_GetTick(), proximity);
-
-        // Send via UART
-        HAL_UART_Transmit(&huart3, (uint8_t*)txBuffer, strlen(txBuffer), HAL_MAX_DELAY);
-
-        lastSendTime = HAL_GetTick();
-    }
-}
-
-
 
 
 
@@ -134,7 +94,9 @@ int main(void)
 
   /* USER CODE BEGIN 1 */
 
+
   /* USER CODE END 1 */
+
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -158,63 +120,12 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
 
+  VCNL4020_HandleTypeDef dev;
+  VCNL4020_Init(&dev, &hi2c2);
 
-  /*if (!VCNL4020_Init(&dev, &hi2c2)) {
-      printf("Failed to initialize VCNL4020!\r\n");
-  }
-
-  else{
-	  printf("VCNL4020 initialized successfully\r\n");
-  }
-  */
+  char tx_buffer[50];
 
 
-
-
-/*
-// Try different proximity rates, faster measurements use more power of course!
-// Can also try: PROX_RATE_1_95_PER_S, PROX_RATE_3_9_PER_S, PROX_RATE_7_8_PER_S,
-// PROX_RATE_16_6_PER_S, PROX_RATE_31_2_PER_S, PROX_RATE_62_5_PER_S,
-// PROX_RATE_125_PER_S, PROX_RATE_250_PER_S
-VCNL4020_SetProxRate(&dev, PROX_RATE_16_6_PER_S);
-printf("Proximity Rate: \r\n");
-switch (VCNL4020_GetProxRate(&dev)) {
-    case PROX_RATE_1_95_PER_S: printf("1.95 measurements/s"); break;
-    case PROX_RATE_3_9_PER_S: printf("3.9 measurements/s"); break;
-    case PROX_RATE_7_8_PER_S: printf("7.8 measurements/s"); break;
-    case PROX_RATE_16_6_PER_S: printf("16.6 measurements/s"); break;
-    case PROX_RATE_31_2_PER_S: printf("31.2 measurements/s"); break;
-    case PROX_RATE_62_5_PER_S: printf("62.5 measurements/s"); break;
-    case PROX_RATE_125_PER_S: printf("125 measurements/s"); break;
-    case PROX_RATE_250_PER_S: printf("250 measurements/s"); break;
-}
-
-// LED Current (Valid range: 0-200 mA), higher currents require
-// more power but will let you detect farther.
-VCNL4020_SetProxLEDmA(&dev, 200);
-printf("Proximity LED Current (mA): %u\r\n", VCNL4020_GetProxLEDmA(&dev));
-
-
-// The proximity measurement is using a square IR signal as
-// measurement signal. Four different values are
-// possible: PROX_FREQ_390_625_KHZ, PROX_FREQ_781_25_KHZ,
-// PROX_FREQ_1_5625_MHZ, PROX_FREQ_3_125_MHZ
-VCNL4020_SetProxFrequency(&dev, PROX_FREQ_390_625_KHZ);
-printf("Proximity Frequency: ");
-switch (VCNL4020_GetProxFrequency(&dev)) {
-  case PROX_FREQ_390_625_KHZ: printf("390.625 KHz"); break;
-  case PROX_FREQ_781_25_KHZ: printf("781.25 KHz"); break;
-  case PROX_FREQ_1_5625_MHZ: printf("1.5625 MHz"); break;
-  case PROX_FREQ_3_125_MHZ: printf("3.125 MHz"); break;
-}*/
-
-/*
-printf("Interrupt Status: %u\r\n", VCNL4020_GetInterruptStatus(&dev));
-
-printf("Interrupt Status: %u\r\n", VCNL4020_GetLowThreshold(&dev));
-
-printf("Interrupt Status: %u\r\n", VCNL4020_GetHighThreshold(&dev));
-*/
 
   /* USER CODE END 2 */
 
@@ -222,23 +133,35 @@ printf("Interrupt Status: %u\r\n", VCNL4020_GetHighThreshold(&dev));
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+	  if (data_ready && VCNL4020_IsProxReady(&dev) && count <=10 ){
+
+		  proximity_data[data_index] = VCNL4020_ReadProximity(&dev);
+
+		  sprintf(tx_buffer, "%d,%lu,%u\n", proximity_data[data_index], count, data_index);
+
+		  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
+
+		  data_index++;
+		  data_ready = 0;
+
+		  if (count >= 10){
+
+			  sprintf(tx_buffer, "END\n");
+			  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
+
+			  break;
+		  }
+	  }
+
+	  HAL_Delay(10);
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-	  if(VCNL4020_IsProxReady(&dev)){
-		  sendProximityData(&dev);
-	  }
+  }
 
-	  VCNL4020_clearInterrupts(&dev, true, false, false, false);
-/*
-	  if (!HAL_GPIO_ReadPin(GPIOG, GPIO_PIN_3)) {
-
-	      printf("TAP \r\n");
-	      HAL_Delay(1000);
-	    }
-*/
-	  //HAL_Delay(1000);
-
+  while (1){
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
@@ -394,6 +317,12 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin : USER_Btn_Pin */
+  GPIO_InitStruct.Pin = USER_Btn_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
   GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -466,13 +395,24 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
   /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == TAP_GPIO_Pin) {
+        	count ++;
+        	data_ready = 1;
 
+    }
+}
 /* USER CODE END 4 */
 
 /**
