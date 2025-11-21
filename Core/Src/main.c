@@ -27,7 +27,6 @@
 #include "ssd1306_tests.h"
 #include "ssd1306_conf.h"
 #include "Adafruit_VCNL4020.h"
-#include "tap.h"
 #include "FunctionState.h"
 #include "imu.h"
 
@@ -57,15 +56,15 @@ I2C_HandleTypeDef hi2c4;
 UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
-uint32_t count = 0;
+volatile uint32_t tap = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_GPIO_Init(void);
-void MX_I2C1_Init(void);
-void MX_I2C4_Init(void);
-void MX_USART3_UART_Init(void);
+static void MX_GPIO_Init(void);
+static void MX_I2C1_Init(void);
+static void MX_I2C4_Init(void);
+static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
 int _write(int file, char *ptr, int len);
 
@@ -73,13 +72,6 @@ int _write(int file, char *ptr, int len);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
-{
-    if (GPIO_Pin == TAP_GPIO_Pin) {
-        if (HAL_GPIO_ReadPin(TAP_GPIO_Port, TAP_GPIO_Pin) == GPIO_PIN_RESET) {
-        	count ++; }
-    }
-}
     /* Route printf() to USART3 so text shows on the ST-LINK Virtual COM port */
     int _write(int file, char *ptr, int len) {
       HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
@@ -159,8 +151,8 @@ int main(void)
 		  }
 		  break;
       case Taps_State:
-        TapsH(&counter);
-        eNextState = (counter < 9) ? Taps_State : End_State;
+        TapsH(&tap);
+        eNextState = (tap < 9) ? Taps_State : End_State;
         break;
       case Rot_State:
         RotH(&counter);
@@ -224,7 +216,7 @@ void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-void MX_I2C1_Init(void)
+static void MX_I2C1_Init(void)
 {
 
   /* USER CODE BEGIN I2C1_Init 0 */
@@ -272,7 +264,7 @@ void MX_I2C1_Init(void)
   * @param None
   * @retval None
   */
-void MX_I2C4_Init(void)
+static void MX_I2C4_Init(void)
 {
 
   /* USER CODE BEGIN I2C4_Init 0 */
@@ -320,7 +312,7 @@ void MX_I2C4_Init(void)
   * @param None
   * @retval None
   */
-void MX_USART3_UART_Init(void)
+static void MX_USART3_UART_Init(void)
 {
 
   /* USER CODE BEGIN USART3_Init 0 */
@@ -355,7 +347,7 @@ void MX_USART3_UART_Init(void)
   * @param None
   * @retval None
   */
-void MX_GPIO_Init(void)
+static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   /* USER CODE BEGIN MX_GPIO_Init_1 */
@@ -480,6 +472,14 @@ void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == TAP_GPIO_Pin) {
+        	tap ++;
+        	
+
+    }
+}
 
 /* USER CODE END 4 */
 
