@@ -46,37 +46,35 @@ void TransH(){
   ssd1306_Fill(0);
   ssd1306_UpdateScreen();
 }
-void TapsH(uint32_t* counter){
+void TapsH(volatile uint32_t* counter){
   //TO-DO: Implement state
 	 VCNL4020_HandleTypeDef dev;
-	  VCNL4020_Init(&dev, &hi2c2);
-	  uint16_t proximity_data[1000];
-	  uint16_t data_index = 0;
-	  char tx_buffer[50];
-	if (VCNL4020_IsProxReady(&dev)){
+	 VCNL4020_Init(&dev, &hi2c2);
+	 uint32_t previousTick = HAL_GetTick();
+	 char tx_buffer[100];
 
-			  proximity_data[data_index] = VCNL4020_ReadProximity(&dev);
+	  if (VCNL4020_IsProxReady(&dev) && counter <=10 ){
+			  if ( HAL_GetTick() - previousTick >= 100){
 
-			  sprintf(tx_buffer, "%d,%lu,%u\n", proximity_data[data_index], counter, data_index);
+				  uint16_t proximity = VCNL4020_ReadProximity(&dev);
 
-			  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
+				  sprintf(tx_buffer, "%u,%lu\r\n", proximity, counter);
 
-			  data_index++;
-
-			  if (counter >= 10){
-
-				  sprintf(tx_buffer, "END\n");
 				  HAL_UART_Transmit(&huart3, (uint8_t*)tx_buffer, strlen(tx_buffer), HAL_MAX_DELAY);
 
+				  previousTick = HAL_GetTick();
+
+				  ssd1306_SetCursor(1,1);
+				  ssd1306_WriteString("Taps Count:", Font_11x18, White);
+				  char text[20] = {0};
+				  sprintf(text, "%ld", *counter);
+				  ssd1306_SetCursor(1, 30);
+				  ssd1306_WriteString(text, Font_11x18, White);
+				  ssd1306_UpdateScreen();
+
 			  }
-		  }
-  ssd1306_SetCursor(1,1);
-  ssd1306_WriteString("Taps Count:", Font_11x18, White);
-  char text[20] = {0};
-  sprintf(text, "%ld", *counter);
-  ssd1306_SetCursor(1, 30);
-  ssd1306_WriteString(text, Font_11x18, White);
-  ssd1306_UpdateScreen();
+		}
+
 }
 
 
