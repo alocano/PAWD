@@ -36,6 +36,7 @@
 /* USER CODE BEGIN PTD */
 #define TAP_GPIO_Port GPIOG
 #define TAP_GPIO_Pin GPIO_PIN_0
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -58,25 +59,23 @@ UART_HandleTypeDef huart3;
 
 /* USER CODE BEGIN PV */
 volatile uint32_t tap = 0;
-//extern volatile uint32_t cycles = 0;
+volatile uint32_t cycles = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
+static void MX_I2C2_Init(void);
 static void MX_I2C4_Init(void);
 static void MX_USART3_UART_Init(void);
-static void MX_I2C2_Init(void);
 /* USER CODE BEGIN PFP */
 int _write(int file, char *ptr, int len);
-
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-    /* Route printf() to USART3 so text shows on the ST-LINK Virtual COM port */
-    int _write(int file, char *ptr, int len) {
+int _write(int file, char *ptr, int len) {
       HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
       return len;
     }
@@ -120,13 +119,13 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_I2C1_Init();
+  MX_I2C2_Init();
   MX_I2C4_Init();
   MX_USART3_UART_Init();
-  MX_I2C2_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
-  uint32_t counter = 0;
-  char text[20] = {0};
+   uint32_t counter = 0;
+   char text[20] = {0};
 
   /* USER CODE END 2 */
 
@@ -134,9 +133,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    /* USER CODE END WHILE */
-
-    /* USER CODE BEGIN 3 */
 	  switch(eNextState){
 	    case Start_State:
 	      Starth(&counter);
@@ -145,11 +141,13 @@ int main(void)
       case Trans_State:
 	      TransH();
         //user input to determine next state, 1/PA9 for Taps, 2/PA10 for Rotation
+	     //if(HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3,GPIO_PIN_SET)){ //
 	      if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)){
 				eNextState = Taps_State;
 				break;
 		  }
-		  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_SET){
+	 // if(HAL_GPIO_WritePin(GPIOC,GPIO_PIN_0,GPIO_PIN_SET)){ //
+	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_SET){
 			  eNextState = Rot_State;
 		  	  break;
 		  }
@@ -170,6 +168,10 @@ int main(void)
         eNextState = Start_State;
         break;
 	  }
+
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   }
   /* USER CODE END 3 */
 }
@@ -412,8 +414,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-  __HAL_RCC_GPIOG_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, LD1_Pin|LD3_Pin|LD2_Pin, GPIO_PIN_RESET);
@@ -462,12 +464,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PG0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-
   /*Configure GPIO pin : RMII_TXD1_Pin */
   GPIO_InitStruct.Pin = RMII_TXD1_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -475,6 +471,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PD8 */
+  GPIO_InitStruct.Pin = GPIO_PIN_8;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
@@ -512,9 +514,6 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
-
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
@@ -528,11 +527,10 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == TAP_GPIO_Pin) {
         	tap ++;
-        	
+
 
     }
 }
-
 /* USER CODE END 4 */
 
 /**

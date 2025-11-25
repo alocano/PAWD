@@ -19,8 +19,8 @@
 #define ADDR_6B              (0x6B << 1)
 
 /* Global cycle counter (definition; declaration is in imu.h) */
-volatile uint32_t cycles = 0;
 
+extern volatile uint32_t cycles;
 /* IMU I2C address selected at runtime by lsm6_detect() */
 static uint16_t lsm6_addr = ADDR_6A;
 
@@ -122,7 +122,7 @@ void lsm6_convert(int16_t gx, int16_t gy, int16_t gz,
     *az_g = az * 0.000122f;
 }
 
-/* MATLAB cycle-detector translated to C (no hesitation logic) */
+/* MATLAB cycle-detector  */
 void update_stats_from_gx(float gx_dps)
 {
     /* Parameters from your MATLAB code */

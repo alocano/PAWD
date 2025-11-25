@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 /* Global cycle counter (full pronation–supination cycles) */
-//extern volatile uint32_t cycles;
+extern volatile uint32_t cycles;
 
 /* IMU high-level API (same names you already use in main.c) */
 

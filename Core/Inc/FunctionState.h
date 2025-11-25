@@ -12,8 +12,8 @@
 
 void Starth(uint32_t* counter);
 void TransH();
-void TapsH(uint32_t* counter);
-void RotH(uint32_t* counter);
+void TapsH(volatile uint32_t* counter);
+void RotH(volatile uint32_t* counter);
 void EndH(void);
 
 
