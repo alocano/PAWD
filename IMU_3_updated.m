@@ -1,5 +1,5 @@
 % ==== Pronation–Supination (Gyro X) with Hesitations + Auto-Stop ====
-PORT = "COM8"; BAUDRATE = 115200; WINDOW = 25;
+PORT = "COM5"; BAUDRATE = 115200; WINDOW = 25;
 N_CYCLES_TARGET = 10;                
 
 % open serial
