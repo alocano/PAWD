@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "stm32f7xx_hal.h"
-extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c1;
 
 #define VCNL4020_I2C_ADDRESS 0x13 ///< The address is fixed
 

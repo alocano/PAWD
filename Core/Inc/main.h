@@ -57,13 +57,6 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define USER_Btn_Pin GPIO_PIN_13
-#define USER_Btn_GPIO_Port GPIOC
-#define USER_Btn_EXTI_IRQn EXTI15_10_IRQn
-#define prox_blue_Pin GPIO_PIN_0
-#define prox_blue_GPIO_Port GPIOF
-#define prox_yellow_Pin GPIO_PIN_1
-#define prox_yellow_GPIO_Port GPIOF
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define RMII_MDC_Pin GPIO_PIN_1
@@ -80,14 +73,29 @@ void Error_Handler(void);
 #define RMII_RXD1_GPIO_Port GPIOC
 #define LD1_Pin GPIO_PIN_0
 #define LD1_GPIO_Port GPIOB
+#define tap_Pin GPIO_PIN_13
+#define tap_GPIO_Port GPIOF
+#define tap_EXTI_IRQn EXTI15_10_IRQn
 #define oled_yellow_Pin GPIO_PIN_14
 #define oled_yellow_GPIO_Port GPIOF
 #define oled_blue_Pin GPIO_PIN_15
 #define oled_blue_GPIO_Port GPIOF
+#define prox_sel_Pin GPIO_PIN_10
+#define prox_sel_GPIO_Port GPIOE
+#define prox_sel_EXTI_IRQn EXTI15_10_IRQn
+#define pro_sup_sel_Pin GPIO_PIN_12
+#define pro_sup_sel_GPIO_Port GPIOE
+#define pro_sup_sel_EXTI_IRQn EXTI15_10_IRQn
+#define imu_yellow_Pin GPIO_PIN_10
+#define imu_yellow_GPIO_Port GPIOB
+#define imu_blue_Pin GPIO_PIN_11
+#define imu_blue_GPIO_Port GPIOB
 #define RMII_TXD1_Pin GPIO_PIN_13
 #define RMII_TXD1_GPIO_Port GPIOB
 #define LD3_Pin GPIO_PIN_14
 #define LD3_GPIO_Port GPIOB
+#define STLK_RX_Pin GPIO_PIN_8
+#define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
 #define STLK_TX_GPIO_Port GPIOD
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
@@ -114,12 +122,12 @@ void Error_Handler(void);
 #define RMII_TXD0_GPIO_Port GPIOG
 #define SW0_Pin GPIO_PIN_3
 #define SW0_GPIO_Port GPIOB
-#define imu_yellow_Pin GPIO_PIN_6
-#define imu_yellow_GPIO_Port GPIOB
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
-#define imu_blue_Pin GPIO_PIN_9
-#define imu_blue_GPIO_Port GPIOB
+#define prox_yellow_Pin GPIO_PIN_8
+#define prox_yellow_GPIO_Port GPIOB
+#define prox_blue_Pin GPIO_PIN_9
+#define prox_blue_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

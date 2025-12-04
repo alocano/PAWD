@@ -16,14 +16,11 @@ int  lsm6_detect(void);
 int  lsm6_init(void);
 
 /* Read raw gyro/accel data from the IMU over I2C */
-void lsm6_read_raw(int16_t *gx, int16_t *gy, int16_t *gz,
-                   int16_t *ax, int16_t *ay, int16_t *az);
+void lsm6_read_raw(int16_t *gx);
 
 /* Convert raw data to physical units (dps and g) */
-void lsm6_convert(int16_t gx, int16_t gy, int16_t gz,
-                  int16_t ax, int16_t ay, int16_t az,
-                  float *gx_dps, float *gy_dps, float *gz_dps,
-                  float *ax_g,  float *ay_g,  float *az_g);
+void lsm6_convert(int16_t gx,
+                  float *gx_dps);
 
 /* Update on-board cycle count using gyro X in dps */
 void update_stats_from_gx(float gx_dps);

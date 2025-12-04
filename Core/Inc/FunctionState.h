@@ -14,6 +14,8 @@ void Starth(uint32_t* counter);
 void TransH();
 void TapsH(volatile uint32_t* counter);
 void RotH(volatile uint32_t* counter);
+void delay(volatile uint32_t* clock);
+void delay2(volatile uint32_t* clock);
 void EndH(void);
 
 

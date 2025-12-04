@@ -34,8 +34,8 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define TAP_GPIO_Port GPIOG
-#define TAP_GPIO_Pin GPIO_PIN_0
+#define TAP_GPIO_Port GPIOF
+#define TAP_GPIO_Pin GPIO_PIN_13
 
 /* USER CODE END PTD */
 
@@ -60,6 +60,9 @@ UART_HandleTypeDef huart3;
 /* USER CODE BEGIN PV */
 volatile uint32_t tap = 0;
 volatile uint32_t cycles = 0;
+int sec = 3;
+volatile uint32_t clock =0;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,23 +73,39 @@ static void MX_I2C2_Init(void);
 static void MX_I2C4_Init(void);
 static void MX_USART3_UART_Init(void);
 /* USER CODE BEGIN PFP */
-int _write(int file, char *ptr, int len);
+
+#ifdef __GNUC__
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-int _write(int file, char *ptr, int len) {
-      HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
-      return len;
-    }
-    typedef enum{
-      Start_State,
-      Trans_State,
-      Taps_State,
-      Rot_State,
-      End_State
-    }eSystemState;
-    eSystemState eNextState = Start_State;
+int write(int file, char *ptr, int len)
+{
+	HAL_UART_Transmit(&huart3, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+	return len;
+}
+
+typedef enum{
+  Start_State,
+  Trans_State,
+  Taps_State,
+  Rot_State,
+  End_State,
+  Delay_State,
+  Delay_State2
+}eSystemState;
+eSystemState eNextState = Start_State;
+
+PUTCHAR_PROTOTYPE {
+	HAL_UART_Transmit(&huart3, (uint8_t*)&ch, 1, HAL_MAX_DELAY);
+	return ch;
+}
+
 /* USER CODE END 0 */
 
 /**
@@ -124,8 +143,9 @@ int main(void)
   MX_USART3_UART_Init();
   /* USER CODE BEGIN 2 */
   ssd1306_Init();
-   uint32_t counter = 0;
-   char text[20] = {0};
+  uint32_t counter = 0;
+  char text[20] = {0};
+
 
   /* USER CODE END 2 */
 
@@ -135,32 +155,57 @@ int main(void)
   {
 	  switch(eNextState){
 	    case Start_State:
+	    	  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
 	      Starth(&counter);
 	      eNextState = Trans_State;
 	      break;
       case Trans_State:
+    	  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 	      TransH();
+
         //user input to determine next state, 1/PA9 for Taps, 2/PA10 for Rotation
 	     //if(HAL_GPIO_WritePin(GPIOA,GPIO_PIN_3,GPIO_PIN_SET)){ //
-	      if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_3)){
-				eNextState = Taps_State;
+	      if(eNextState == Delay_State || Rot_State){
 				break;
 		  }
-	 // if(HAL_GPIO_WritePin(GPIOC,GPIO_PIN_0,GPIO_PIN_SET)){ //
-	  if(HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_0) == GPIO_PIN_SET){
-			  eNextState = Rot_State;
-		  	  break;
-		  }
+
 		  break;
+
+      case Delay_State:
+    	  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+    	 delay(&clock);
+    	 //eNextState = (clock != 3) ? Delay_State : Taps_State;
+    	 clock++;
+    	 HAL_Delay(1000);
+    	 if(clock >= sec){
+    		 eNextState = Taps_State;
+    		 break;
+    	 }
+    	 break;
+      case Delay_State2:
+    	  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+          	 delay2(&clock);
+          	 eNextState = (clock != sec) ? Delay_State2 : Rot_State;
+          	 clock++;
+          	 HAL_Delay(1000);
+          	 if(clock >= sec){
+          		 eNextState = Rot_State;
+          		 break;
+          	 }
+          	 break;
       case Taps_State:
+    	tap=0;
         TapsH(&tap);
         eNextState = (tap < 9) ? Taps_State : End_State;
+        tap= 0;
         break;
       case Rot_State:
-        RotH(&counter);
-        eNextState = (counter < 9) ? Rot_State : End_State;
+        RotH(&cycles);
+        eNextState = (cycles < 10) ? Rot_State : End_State;
+       // cycles=0;
         break;
       case End_State:
+    	  clock=0;
         EndH();
         eNextState = Start_State;
         break;
@@ -168,7 +213,6 @@ int main(void)
         eNextState = Start_State;
         break;
 	  }
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -410,10 +454,11 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
+  __HAL_RCC_GPIOF_CLK_ENABLE();
+  __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
@@ -422,18 +467,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : USER_Btn_Pin */
-  GPIO_InitStruct.Pin = USER_Btn_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(USER_Btn_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PC0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : RMII_MDC_Pin RMII_RXD0_Pin RMII_RXD1_Pin */
   GPIO_InitStruct.Pin = RMII_MDC_Pin|RMII_RXD0_Pin|RMII_RXD1_Pin;
@@ -451,18 +484,24 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : PA3 */
-  GPIO_InitStruct.Pin = GPIO_PIN_3;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pins : LD1_Pin LD3_Pin LD2_Pin */
   GPIO_InitStruct.Pin = LD1_Pin|LD3_Pin|LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : tap_Pin */
+  GPIO_InitStruct.Pin = tap_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(tap_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : prox_sel_Pin pro_sup_sel_Pin */
+  GPIO_InitStruct.Pin = prox_sel_Pin|pro_sup_sel_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pin : RMII_TXD1_Pin */
   GPIO_InitStruct.Pin = RMII_TXD1_Pin;
@@ -471,12 +510,6 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
   GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
   HAL_GPIO_Init(RMII_TXD1_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PD8 */
-  GPIO_InitStruct.Pin = GPIO_PIN_8;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : USB_PowerSwitchOn_Pin */
   GPIO_InitStruct.Pin = USB_PowerSwitchOn_Pin;
@@ -527,10 +560,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == TAP_GPIO_Pin) {
         	tap ++;
+        	return;
+    }
 
+    if(GPIO_Pin == pro_sup_sel_Pin){
+    	eNextState = Delay_State2;
+    	return;
+    }
 
+    if(GPIO_Pin == prox_sel_Pin){
+    	eNextState = Delay_State;
+    	return;
     }
 }
+
 /* USER CODE END 4 */
 
 /**

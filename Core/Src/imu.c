@@ -21,23 +21,25 @@
 /* Global cycle counter (definition; declaration is in imu.h) */
 
 extern volatile uint32_t cycles;
+
+
 /* IMU I2C address selected at runtime by lsm6_detect() */
 static uint16_t lsm6_addr = ADDR_6A;
 
-/* hi2c1 is defined in main.c; we just reference it here */
-extern I2C_HandleTypeDef hi2c1;
+/* hi2c2 is defined in main.c; we just reference it here */
+extern I2C_HandleTypeDef hi2c2;
 
 /* ---------- Local I2C helpers ---------- */
 static HAL_StatusTypeDef i2c_write(uint16_t addr, uint8_t reg, uint8_t val)
 {
-    return HAL_I2C_Mem_Write(&hi2c1, addr, reg,
+    return HAL_I2C_Mem_Write(&hi2c2, addr, reg,
                              I2C_MEMADD_SIZE_8BIT, &val, 1, 100);
 }
 
 static HAL_StatusTypeDef i2c_read(uint16_t addr, uint8_t reg,
                                   uint8_t *buf, uint16_t len)
 {
-    return HAL_I2C_Mem_Read(&hi2c1, addr, reg,
+    return HAL_I2C_Mem_Read(&hi2c2, addr, reg,
                             I2C_MEMADD_SIZE_8BIT, buf, len, 100);
 }
 
@@ -83,43 +85,25 @@ int lsm6_init(void)
     return 0;
 }
 
-void lsm6_read_raw(int16_t *gx, int16_t *gy, int16_t *gz,
-                   int16_t *ax, int16_t *ay, int16_t *az)
+void lsm6_read_raw(int16_t *gx)
 {
-    uint8_t buf[6];
+    uint8_t buf[2];
 
-    if (i2c_read(lsm6_addr, LSM6DS3_OUTX_L_G, buf, 6) == HAL_OK) {
+    if (i2c_read(lsm6_addr, LSM6DS3_OUTX_L_G, buf, 2) == HAL_OK) {
         *gx = (int16_t)((buf[1] << 8) | buf[0]);
-        *gy = (int16_t)((buf[3] << 8) | buf[2]);
-        *gz = (int16_t)((buf[5] << 8) | buf[4]);
     } else {
-        *gx = *gy = *gz = 0;
-    }
-
-    if (i2c_read(lsm6_addr, LSM6DS3_OUTX_L_XL, buf, 6) == HAL_OK) {
-        *ax = (int16_t)((buf[1] << 8) | buf[0]);
-        *ay = (int16_t)((buf[3] << 8) | buf[2]);
-        *az = (int16_t)((buf[5] << 8) | buf[4]);
-    } else {
-        *ax = *ay = *az = 0;
+        *gx = 0;
     }
 }
 
-void lsm6_convert(int16_t gx, int16_t gy, int16_t gz,
-                  int16_t ax, int16_t ay, int16_t az,
-                  float *gx_dps, float *gy_dps, float *gz_dps,
-                  float *ax_g,  float *ay_g,  float *az_g)
+void lsm6_convert(int16_t gx,
+                  float *gx_dps)
 {
     /* Sensitivities:
        Gyro 2000 dps: 0.07 dps/LSB
        Accel ±4 g:    0.122 mg/LSB = 0.000122 g/LSB */
     *gx_dps = gx * 0.07f;
-    *gy_dps = gy * 0.07f;
-    *gz_dps = gz * 0.07f;
 
-    *ax_g = ax * 0.000122f;
-    *ay_g = ay * 0.000122f;
-    *az_g = az * 0.000122f;
 }
 
 /* MATLAB cycle-detector  */

@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "Adafruit_VCNL4020.h"
 #include "main.h"
-extern I2C_HandleTypeDef hi2c2;
+extern I2C_HandleTypeDef hi2c1;
 
 
 /*!
@@ -73,13 +73,13 @@ bool VCNL4020_ReadRegister16(VCNL4020_HandleTypeDef *dev, uint8_t reg, uint16_t 
  * @param  *hi2c2  I2C Structure
  * @return True if initialization was successfully
  */
-bool VCNL4020_Init(VCNL4020_HandleTypeDef *dev, I2C_HandleTypeDef *hi2c2){
-	if (dev == NULL || hi2c2 == NULL) {
+bool VCNL4020_Init(VCNL4020_HandleTypeDef *dev, I2C_HandleTypeDef *hi2c){
+	if (dev == NULL || hi2c == NULL) {
 		return false;
 	}
 
 	// Initialize sensor structure
-	dev->hi2c = hi2c2;
+	dev->hi2c = hi2c;
 	dev->address = VCNL4020_I2C_ADDRESS << 1; // HAL requires 7-bit address shifted left
 
 	// Verify Product ID Revision

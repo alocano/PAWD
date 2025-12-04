@@ -64,7 +64,7 @@ _BEGIN_STD_C
 /* vvv I2C config vvv */
 
 #ifndef SSD1306_I2C_PORT
-#define SSD1306_I2C_PORT        hi2c1
+#define SSD1306_I2C_PORT        hi2c4
 #endif
 
 #ifndef SSD1306_I2C_ADDR
@@ -123,6 +123,9 @@ extern SPI_HandleTypeDef SSD1306_SPI_PORT;
 #ifndef SSD1306_BUFFER_SIZE
 #define SSD1306_BUFFER_SIZE   SSD1306_WIDTH * SSD1306_HEIGHT / 8
 #endif
+
+
+
 
 // Enumeration for screen colors
 typedef enum {
