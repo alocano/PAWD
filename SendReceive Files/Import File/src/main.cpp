@@ -29,16 +29,7 @@ void setup() {
     Serial.println("!SYSTEM: SPIFFS Ready. Awaiting command...");
 }
 
-void loop() {
-    if (Serial.available()) {
-        String command = Serial.readStringUntil('\n');
-        command.trim();
 
-        if (command.equals(CMD_SEND_FILE)) {
-            sendFile("/data.txt");
-        }
-    }
-}
 
 void sendFile(String path) {
     File file = SPIFFS.open(path, FILE_READ);
@@ -62,4 +53,15 @@ void sendFile(String path) {
 
     Serial.println("!EOF");
     Serial.println("!TRANSMISSION: Complete");
+}
+
+void loop() {
+    if (Serial.available()) {
+        String command = Serial.readStringUntil('\n');
+        command.trim();
+
+        if (command.equals(CMD_SEND_FILE)) {
+            sendFile("/data.txt");
+        }
+    }
 }
