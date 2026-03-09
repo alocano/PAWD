@@ -1,14 +1,19 @@
 #include <Arduino.h>
 #include "SPIFFS.h"
 
-/* Step 1. Build and upload only the filesystem (contents of /data folder on computer)
-pio run --target -uploadfs
-or use sidebar:
-PlatformIO -> Project Tasks -> esp32dev -> Platform -> Upload Filesystem Image
+/* 
+Step 1. Build and upload only the filesystem (contents of /data folder on computer)
+    Terminal:pio run --target -uploadfs
+    or use sidebar:
+    PlatformIO -> Project Tasks -> esp32dev -> Platform -> Upload Filesystem Image
 Step 2. Upload main.cpp code
-Terminal: pio run --target upload
-or use sidebar:
-PlatformIO -> Project Tasks -> esp32dev -> General -> Upload
+    Terminal: pio run --target upload
+    or use sidebar:
+    PlatformIO -> Project Tasks -> esp32dev -> General -> Upload
+Verification
+    Open PlatformIO serial monitor (plug icon on bottom toolbar)
+    Type SEND_FILE and press enter to send command
+    Should see file size header, file content, then end of file
 */
 
 const String CMD_SEND_FILE = "SEND_FILE";
