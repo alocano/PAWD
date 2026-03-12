@@ -18,8 +18,10 @@ Step 3. Verification
         on the ESP32 to get the system to recognize the command input, THEN type SEND_FILE
             Also if SEND_FILE still doesn't work, immediately type and enter it again
     Should see file size header, file content, then end of file
-Step 4. Run python code
-    Terminal: python receiver.py
+Step 4. Run python code (while in /src folder)
+    Terminal: python receive.py
+    Press EN/reset button on ESP32 to trigger file transfer
+    Should see file content printed in terminal, and file "received_from_esp32.txt" appear in /src folder
 */
 #include <Arduino.h>
 #include "SPIFFS.h"
