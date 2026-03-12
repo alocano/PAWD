@@ -124,6 +124,7 @@ void loop() {
          if(selection == 0)
          {
             tft.print("Prob");
+			myData.stateID = 101;
             strcpy(myData.payload, "PROB");
             currentState =  SENDING_CMD;;
             delay(1000);
@@ -133,6 +134,7 @@ void loop() {
          else
          {
            tft.print("Taps");
+		   myData.stateID = 102;
            strcpy(myData.payload, "TAP");
            currentState =  SENDING_CMD;
            delay(1000);
