@@ -1,7 +1,7 @@
 #include "espnow_handler.h"
 #include <string.h>
 
-static uint8_t                  s_coordinator_mac[6] = {0x9C, 0x13, 0x9E, 0xAB, 0xD5, 0xA0};
+static uint8_t                  s_coordinator_mac[6] ;
 static espnow_cmd_callback_t    s_cmd_callback   = nullptr;
 static espnow_send_callback_t   s_send_callback  = nullptr;
 
