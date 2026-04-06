@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PAWD - Parkinson's Assistive Wearable Device</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <h1>PAWD - Parkinson's Assistive Wearable Device</h1>
+    <p>Assessment and results for clinicians</p>
+  </header>
+
+  <main>
+    <!-- Patient section -->
+    <section class="card">
+      <h2>Patient</h2>
+      <div class="patient-controls">
+        <label>Select or create patient</label>
+        <select id="patientSelect">
+          <option value="">-- Select patient --</option>
+        </select>
+        <div class="inline-form">
+          <input type="text" id="newPatientId" placeholder="Patient ID (e.g. patient1)" />
+          <input type="number" id="newPatientAge" placeholder="Age" min="1" />
+          <button type="button" id="createPatient">Create patient</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Start assessments -->
+    <section class="card">
+      <h2>Start assessments</h2>
+      <p>Select a patient, then start a test. Press Stop when the patient has finished.</p>
+      <div class="assessments">
+
+        <div class="assessment-group">
+          <h3>Finger tapping</h3>
+          <p>Tap thumb and index finger together as fast as possible.</p>
+          <div class="assessment-controls">
+            <button type="button" id="startFinger" class="btn-start">Start</button>
+            <button type="button" id="stopFinger"  class="btn-stop" disabled hidden>Stop</button>
+            <span id="countdownFinger" class="countdown" hidden></span>
+          </div>
+          <p id="statusFinger" class="assessment-status" hidden></p>
+        </div>
+
+        <div class="assessment-group">
+          <h3>Pronation–supination</h3>
+          <p>Rotate wrist with straight arm as fast as possible.</p>
+          <div class="assessment-controls">
+            <button type="button" id="startPronation" class="btn-start">Start</button>
+            <button type="button" id="stopPronation"  class="btn-stop" disabled hidden>Stop</button>
+            <span id="countdownPronation" class="countdown" hidden></span>
+          </div>
+          <p id="statusPronation" class="assessment-status" hidden></p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section class="card">
+      <h2>Assessment results</h2>
+      <p>Numerical and graphical UPDRS scores over time.</p>
+      <div id="resultsPlaceholder" class="placeholder">Select a patient and run tests to see results.</div>
+      <div id="resultsContent" class="results-content" hidden>
+
+        <div class="results-numeric">
+          <h3>Numerical scores</h3>
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th data-sort="test_type">Test</th>
+                <th data-sort="updrs_score">UPDRS score (0–4)</th>
+                <th data-sort="duration_seconds">Duration (s)</th>
+                <th data-sort="test_date">Date</th>
+                <th data-sort="test_time">Time</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="results-chart">
+          <div class="chart-header">
+            <h3 id="chartTitle">Severity over time</h3>
+            <label class="chart-mode">
+              Show:
+              <select id="chartMode">
+                <option value="finger_taps">Finger Taps</option>
+                <option value="pronation_supination">Pronation-Supination</option>
+                <option value="both">Both</option>
+              </select>
+            </label>
+          </div>
+
+          <div id="chartSingleWrap">
+            <canvas id="resultsChart"></canvas>
+          </div>
+
+          <div id="chartBothWrap" hidden>
+            <div class="chart-box">
+              <h4>Finger Taps</h4>
+              <canvas id="resultsChartFinger"></canvas>
+            </div>
+            <div class="chart-box">
+              <h4>Pronation–Supination</h4>
+              <canvas id="resultsChartPronation"></canvas>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  font-family: system-ui, sans-serif;
+  margin: 0;
+  padding: 1rem;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+}
+header {
+  margin-bottom: 1.5rem;
+}
+header h1 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.5rem;
+}
+header p {
+  margin: 0;
+  color: #555;
+}
+.card {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+.card h2 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.2rem;
+}
+.card h3 {
+  margin: 0.5rem 0;
+  font-size: 1rem;
+}
+.patient-controls label {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+#patientSelect {
+  margin-bottom: 0.5rem;
+  min-width: 200px;
+  padding: 0.35rem;
+}
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.inline-form input,
+.inline-form select {
+  padding: 0.35rem;
+}
+.assessments {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.assessment-group {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #eee;
+}
+.assessment-group:last-child {
+  border-bottom: none;
+}
+.placeholder {
+  color: #666;
+  font-style: italic;
+}
+.results-content {
+  margin-top: 0.5rem;
+}
+.results-numeric {
+  margin-bottom: 1rem;
+}
+.results-numeric table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.results-numeric th,
+.results-numeric td {
+  border: 1px solid #ddd;
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+}
+.results-numeric th {
+  background: #f5f5f5;
+}
+.results-chart {
+  width: 100%;
+}
+.chart-header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.chart-mode {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.chart-mode select {
+  padding: 0.35rem;
+}
+
+/* Assessment controls and status messages */
+.assessment-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+.btn-start {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+}
+.btn-start:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-stop {
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  background: #dc2626;
+  color: #fff;
+  border: 1px solid #b91c1c;
+  border-radius: 4px;
+}
+.btn-stop:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Countdown number shown inline next to buttons */
+.countdown {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #2563eb;
+  min-width: 1.5ch;
+  text-align: center;
+  line-height: 1;
+}
+
+/* Status message — only has a visible box when not hidden */
+.assessment-status {
+  margin-top: 0.4rem;
+  font-size: 0.88rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 4px;
+  background: #f0f0f0;
+  display: inline-block;
+}
+.assessment-status[hidden] {
+  display: none;
+}
+.assessment-status.status-ok {
+  background: #e6f4ea;
+  color: #2d6a4f;
+}
+.assessment-status.status-warn {
+  background: #fff8e1;
+  color: #92400e;
+}
+.assessment-status.status-err {
+  background: #fdecea;
+  color: #b91c1c;
+}
+
+/* Sortable table headers */
+.results-numeric th[data-sort]:hover {
+  background: #e8e8e8;
+}
+.results-numeric th[data-sort]::after {
+  content: " ↕";
+  color: #aaa;
+  font-size: 0.8em;
+}
+.results-numeric th[data-sort].sort-active[data-sort-dir="asc"]::after {
+  content: " ↑";
+  color: #333;
+}
+.results-numeric th[data-sort].sort-active[data-sort-dir="desc"]::after {
+  content: " ↓";
+  color: #333;
+}
+
+/* Single chart: position:relative + explicit height lets Chart.js fill the
+   container correctly when maintainAspectRatio is false.
+   The [hidden] selector overrides the explicit display value so the HTML
+   hidden attribute actually works. */
+#chartSingleWrap {
+  position: relative;
+  width: 100%;
+  height: 340px;
+}
+#chartSingleWrap[hidden] {
+  display: none;
+}
+
+/* Both-chart wrapper stacks two boxed charts vertically.
+   display:flex must be overridden by [hidden] or the boxes stay visible
+   even when the attribute is set. */
+#chartBothWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+#chartBothWrap[hidden] {
+  display: none;
+}
+
+/* Each test-type chart lives in a fixed-height card so Chart.js has a
+   real pixel height to render into. */
+.chart-box {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem 1rem 2.25rem;
+  background: #fafafa;
+  position: relative;
+  height: 360px;
+}
+.chart-box h4 {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.95rem;
+  color: #333;
+}
