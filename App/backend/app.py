@@ -15,7 +15,7 @@ Data flow:
 import os
 import re
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timezone
 from flask import Flask, request, jsonify, send_from_directory
  
 _frontend = os.path.join(os.path.dirname(__file__), "..", "frontend")
@@ -178,7 +178,7 @@ def add_test_result(patient_id):
     test_type        = (data.get("test_type") or "").strip()
     updrs_score      = data.get("updrs_score", 0)
     duration_seconds = data.get("duration_seconds", 0)
-    now              = datetime.utcnow()
+    now              = datetime.now(timezone.utc)
     test_date        = (data.get("test_date") or now.isoformat()[:10]).strip()
     test_time        = (data.get("test_time") or now.strftime("%H:%M:%S")).strip()
  
@@ -228,7 +228,7 @@ def ingest():
     if not content:
         return jsonify({"error": "content required"}), 400
  
-    now      = datetime.utcnow()
+    now      = datetime.now(timezone.utc)
     date_str = now.isoformat()[:10]
     time_str = now.strftime("%H:%M:%S")
  
@@ -249,4 +249,6 @@ def index():
  
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, port=5000)
+    # use_reloader=False prevents the Werkzeug file-watcher thread from raising
+    # an exception on shutdown (a known issue on Windows with Python 3.12+).
+    app.run(debug=True, port=5000, use_reloader=False)
