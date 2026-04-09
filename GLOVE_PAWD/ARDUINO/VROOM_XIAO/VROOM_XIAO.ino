@@ -18,13 +18,16 @@
 // ─────────────────────────────────────────────
 //  Pin definitions
 // ─────────────────────────────────────────────
-#define TFT_CS     5
-#define TFT_RST    4 
-#define TFT_DC     2
 
-#define ENC_A    32
-#define ENC_B    35
-#define ENC_SW   34
+//#define TFT_SDA  11   // SDA on module, aka mosi
+//#define TFT_SCLK  12 
+#define TFT_CS     5   // old Wroom 5 New  Wroom 10
+#define TFT_RST    4 // " 4  9
+#define TFT_DC     2   // " 2  8
+
+#define ENC_A    32  //32    4
+#define ENC_B    35  //35    5   
+#define ENC_SW   34//34  6
 
 // ─────────────────────────────────────────────
 //  XIAO sensor-node MAC  (update to match your board)
@@ -35,6 +38,7 @@ uint8_t xiaoAddress[] = { 0x9C, 0x13, 0x9E, 0xAB, 0xD5, 0xA0};
 //  Peripherals
 // ─────────────────────────────────────────────
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
+
 ESP32Encoder    encoder;
 
 // ─────────────────────────────────────────────
@@ -58,6 +62,7 @@ static volatile bool  s_newPacket = false;
 // Decoded FSR session results (accumulated across per-press packets)
 static uint16_t s_fsrLastCount = 0;
 static uint16_t s_fsrLastAdc   = 0;
+static uint16_t s_fsrLastTime =0;
 
 // Decoded IMU session results (latest values for display)
 static uint32_t s_imuCycles    = 0;
@@ -170,12 +175,17 @@ void OnDataRecv(const uint8_t *mac,
             const FsrSample_t *samples =
                 reinterpret_cast<const FsrSample_t *>(pkt->payload);
             uint16_t latest = pkt->sample_count - 1;
+			
             s_fsrLastCount  = samples[latest].count;
             s_fsrLastAdc    = samples[latest].adc_value;
+            s_fsrLastTime   = samples[latest].timestamp_ms;
+
+
         }
         // Live update — partial data display during the session
         currentState = RECEIVING;
         s_newPacket  = true;
+
         return;
     }
 
@@ -303,6 +313,12 @@ void printLiveData() {
     s_newPacket = false;
 
     if (s_rxPacket.sensor_id == CMD_READ_FSR) {
+
+        Serial.printf("[TAP] #%u  T:%us  Adc:%u\n",
+                              s_fsrLastCount,
+                              s_fsrLastTime,
+                              s_fsrLastAdc);
+        
         // Show press count and latest ADC value
         tft.fillRect(0, 17, 160, 90, ST77XX_BLACK);
         tft.setCursor(0, 20);
@@ -313,6 +329,11 @@ void printLiveData() {
         tft.setTextColor(ST77XX_WHITE);
         tft.setTextSize(1);
         tft.printf("ADC: %d", s_fsrLastAdc);
+        
+        if (s_fsrLastCount == 10 ){
+            currentState = RECEIVED;
+            tft.fillScreen(ST77XX_BLACK);
+        }
 
     } else if (s_rxPacket.sensor_id == CMD_READ_LSM) {
         // Show live rotation count — mirrors original stateID 203 display
@@ -321,6 +342,7 @@ void printLiveData() {
         tft.setTextColor(ST77XX_CYAN);
         tft.setTextSize(2);
         char buf[24];
+        tft.setCursor(0,41);
         snprintf(buf, sizeof(buf), "COUNT:%lu", (unsigned long)s_imuCycles);
         tft.println(buf);
     }
@@ -330,6 +352,9 @@ void printLiveData() {
 //  RECEIVED  — session complete, final results display
 // ═══════════════════════════════════════════════════════════════
 void printResults() {
+    isMenuDrawn    = false;
+    screenclear    = 0;
+
     tft.setCursor(0, 5);
     tft.setTextColor(ST77XX_WHITE);
     tft.setTextSize(1);
@@ -391,7 +416,7 @@ void setup() {
     Serial.begin(115200);
 
     tft.initR(INITR_BLACKTAB);
-    tft.setRotation(3);
+    tft.setRotation(1);
     updateTFT("PAWD", "Initializing", ST77XX_YELLOW);
     tft.setCursor(0, 25); tft.println("Parkinson");
     tft.setCursor(0, 40); tft.println("Wearable");

@@ -9,8 +9,8 @@
 //  Open WROOM Serial Monitor and look for:
 //    [WROOM] My MAC: XX:XX:XX:XX:XX:XX
 // ─────────────────────────────────────────────
-static const uint8_t COORDINATOR_MAC[6] = { 0x20, 0xE7, 0xC8, 0xAD, 0xC0, 0x8C };
-
+static const uint8_t COORDINATOR_MAC[6] = {0x20, 0xE7, 0xC8, 0xAB, 0xED, 0x24};
+// Esp32-s3 Wroom Mac : 0xDC, 0xB4, 0xD9, 0x05, 0x25, 0xF8
 // ─────────────────────────────────────────────
 //  State machine  (STATE_SLEEP removed)
 // ─────────────────────────────────────────────
@@ -93,10 +93,11 @@ void setup() {
 
     // Print MAC so you can verify xiaoAddress on the WROOM
     WiFi.mode(WIFI_STA);
+    delay(100);
     Serial.print("[XIAO] My MAC: ");
     Serial.println(WiFi.macAddress());
 
-    Serial.println("setup1");
+    
     fsr_init();
     // imu_init() is deferred to STATE_READ_LSM so we only power the
     // I2C bus when the coordinator actually requests IMU data.
@@ -132,6 +133,7 @@ void loop() {
         //  FSR — block on each press, transmit immediately after each
         // ─────────────────────────────────────────────────────────────
         case STATE_READ_FSR: {
+            Serial.println("In FSR");
             uint16_t target = (s_sample_req > 0 &&
                                s_sample_req <= FSR_MAX_SAMPLES)
                               ? s_sample_req : FSR_TARGET_COUNT;
@@ -151,6 +153,8 @@ void loop() {
                 if (!_send(&s_tx_packet)) {
                     Serial.printf("[FSR] Press #%d TX failed\n", pressIndex);
                 }
+                
+               
 
                 if (pressIndex >= target) {
                     Serial.println("[FSR] Target count reached.");
@@ -166,6 +170,7 @@ void loop() {
         //  IMU — non-blocking tick loop
         // ─────────────────────────────────────────────────────────────
         case STATE_READ_LSM: {
+            Serial.println("In IMU");
             // Initialise IMU on first entry; bail out if not found
             if (!imu_is_ready()) {
                 if (!imu_init()) {
@@ -228,6 +233,7 @@ void loop() {
 
         // ── Generic single transmit (error / ping paths) ──────────────
         case STATE_TRANSMIT:
+            Serial.println("In Transmit");
             _send(&s_tx_packet);
             s_state = STATE_IDLE;   // was STATE_SLEEP
             break;
