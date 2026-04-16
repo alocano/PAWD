@@ -33,31 +33,28 @@
     <!-- Start assessments -->
     <section class="card">
       <h2>Start assessments</h2>
-      <p>Select a patient, then start a test. Press Stop when the patient has finished.</p>
+      <p>Start the UPDRS tests. Results are simulated for this prototype.</p>
       <div class="assessments">
-
         <div class="assessment-group">
           <h3>Finger tapping</h3>
-          <p>Tap thumb and index finger together as fast as possible.</p>
-          <div class="assessment-controls">
-            <button type="button" id="startFinger" class="btn-start">Start</button>
-            <button type="button" id="stopFinger"  class="btn-stop" disabled hidden>Stop</button>
-            <span id="countdownFinger" class="countdown" hidden></span>
-          </div>
-          <p id="statusFinger" class="assessment-status" hidden></p>
+          <p>Tap thumb and index finger together 10 times as fast as possible.</p>
+          <button type="button" id="startFinger" class="btn-start">Start</button>
         </div>
-
         <div class="assessment-group">
           <h3>Pronation–supination</h3>
-          <p>Rotate wrist with straight arm as fast as possible.</p>
-          <div class="assessment-controls">
-            <button type="button" id="startPronation" class="btn-start">Start</button>
-            <button type="button" id="stopPronation"  class="btn-stop" disabled hidden>Stop</button>
-            <span id="countdownPronation" class="countdown" hidden></span>
-          </div>
-          <p id="statusPronation" class="assessment-status" hidden></p>
+          <p>Rotate wrist with straight arm 10 times.</p>
+          <button type="button" id="startPronation" class="btn-start">Start</button>
         </div>
+      </div>
+    </section>
 
+    <!-- Raw sensor graph -->
+    <section class="card">
+      <h2>Raw sensor data</h2>
+      <p>Gyroscope readings (dps) over time. Dots mark detected rotations.</p>
+      <div id="rawPlaceholder" class="placeholder">Loading sensor data...</div>
+      <div id="rawChartWrap" hidden>
+        <canvas id="rawChart"></canvas>
       </div>
     </section>
 
@@ -73,11 +70,10 @@
           <table id="resultsTable">
             <thead>
               <tr>
-                <th data-sort="test_type">Test</th>
-                <th data-sort="updrs_score">UPDRS score (0–4)</th>
-                <th data-sort="duration_seconds">Duration (s)</th>
-                <th data-sort="test_date">Date</th>
-                <th data-sort="test_time">Time</th>
+                <th>Test</th>
+                <th>UPDRS score (0–4)</th>
+                <th>Duration (s)</th>
+                <th>Date</th>
               </tr>
             </thead>
             <tbody id="resultsTableBody"></tbody>

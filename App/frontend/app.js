@@ -4,20 +4,138 @@
   let chartSingle    = null;
   let chartFinger    = null;
   let chartPronation = null;
+  let chartRaw       = null;
 
-  const patientSelect         = document.getElementById("patientSelect");
-  const newPatientId          = document.getElementById("newPatientId");
-  const newPatientAge         = document.getElementById("newPatientAge");
-  const createPatientBtn      = document.getElementById("createPatient");
-  const resultsPlaceholder    = document.getElementById("resultsPlaceholder");
-  const resultsContent        = document.getElementById("resultsContent");
-  const resultsTableBody      = document.getElementById("resultsTableBody");
-  const resultsChart          = document.getElementById("resultsChart");
-  const chartTitle            = document.getElementById("chartTitle");
-  const chartMode             = document.getElementById("chartMode");
-  const chartSingleWrap       = document.getElementById("chartSingleWrap");
-  const chartBothWrap         = document.getElementById("chartBothWrap");
-  const resultsChartFinger    = document.getElementById("resultsChartFinger");
+  // -------------------------------------------------------------------------
+  // Raw sensor chart
+  // -------------------------------------------------------------------------
+
+  const rawPlaceholder = document.getElementById("rawPlaceholder");
+  const rawChartWrap   = document.getElementById("rawChartWrap");
+  const rawCanvas      = document.getElementById("rawChart");
+
+  function loadRawChart() {
+    fetch(API + "/raw-data")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.error) {
+          rawPlaceholder.textContent = "Error: " + data.error;
+          return;
+        }
+
+        rawPlaceholder.hidden = true;
+        rawChartWrap.hidden   = false;
+
+        if (chartRaw) { chartRaw.destroy(); chartRaw = null; }
+
+        const samples   = data.samples;    // [{ t, dps }, ...]
+        const rotations = data.rotations;  // [{ t, rot_num, amplitude, duration }, ...]
+
+        // Main gyroscope line — one point per sample
+        const lineData = samples.map((s) => ({ x: s.t, y: s.dps }));
+
+        // Rotation markers — scatter points sitting ON the line at y=0
+        // with a tooltip showing rotation details
+        const markerData = rotations.map((r) => ({ x: r.t, y: 0, meta: r }));
+
+        const ctx = rawCanvas.getContext("2d");
+        chartRaw = new Chart(ctx, {
+          type: "scatter",  // scatter base lets us mix line + point datasets
+          data: {
+            datasets: [
+              {
+                // Gyroscope oscillation line
+                label:           "Gyro (dps)",
+                data:            lineData,
+                type:            "line",
+                borderColor:     "rgb(54, 162, 235)",
+                backgroundColor: "rgba(54, 162, 235, 0.08)",
+                pointRadius:     2,
+                pointHoverRadius: 4,
+                borderWidth:     1.5,
+                fill:            false,
+                tension:         0.3,
+                showLine:        true,
+                order:           2,
+              },
+              {
+                // Rotation detected markers — large dots at y=0
+                label:                "Rotation detected",
+                data:                 markerData,
+                type:                 "scatter",
+                pointStyle:           "circle",
+                pointRadius:          8,
+                pointHoverRadius:     11,
+                pointBorderWidth:     2,
+                backgroundColor:      "rgba(255, 99, 132, 0.85)",
+                borderColor:          "rgb(255, 99, 132)",
+                order:                1,
+              },
+            ],
+          },
+          options: {
+            responsive:          true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type:  "linear",
+                title: { display: true, text: "Time (s)" },
+                ticks: { callback: (v) => v.toFixed(2) + "s" },
+              },
+              y: {
+                title: { display: true, text: "Angular velocity (dps)" },
+                grid:  { color: "rgba(0,0,0,0.06)" },
+              },
+            },
+            plugins: {
+              title: {
+                display: true,
+                text:    "Gyroscope signal – rotation markers at y=0",
+                font:    { size: 14, weight: "bold" },
+              },
+              legend: { position: "top" },
+              tooltip: {
+                callbacks: {
+                  // Richer tooltip for rotation markers
+                  label: function (ctx) {
+                    if (ctx.datasetIndex === 1) {
+                      const m = ctx.raw.meta;
+                      return [
+                        `Rotation #${m.rot_num}`,
+                        `Duration: ${m.duration}s`,
+                        `Amplitude: ${m.amplitude}°`,
+                        `At: ${m.t.toFixed(3)}s`,
+                      ];
+                    }
+                    return `${ctx.parsed.y.toFixed(1)} dps at ${ctx.parsed.x.toFixed(3)}s`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      })
+      .catch((err) => {
+        rawPlaceholder.textContent = "Could not load sensor data.";
+        console.error("Raw data load failed", err);
+      });
+  }
+
+  loadRawChart();
+
+  const patientSelect       = document.getElementById("patientSelect");
+  const newPatientId        = document.getElementById("newPatientId");
+  const newPatientAge       = document.getElementById("newPatientAge");
+  const createPatientBtn    = document.getElementById("createPatient");
+  const resultsPlaceholder  = document.getElementById("resultsPlaceholder");
+  const resultsContent      = document.getElementById("resultsContent");
+  const resultsTableBody    = document.getElementById("resultsTableBody");
+  const resultsChart        = document.getElementById("resultsChart");
+  const chartTitle          = document.getElementById("chartTitle");
+  const chartMode           = document.getElementById("chartMode");
+  const chartSingleWrap     = document.getElementById("chartSingleWrap");
+  const chartBothWrap       = document.getElementById("chartBothWrap");
+  const resultsChartFinger  = document.getElementById("resultsChartFinger");
   const resultsChartPronation = document.getElementById("resultsChartPronation");
 
   // -------------------------------------------------------------------------
@@ -32,7 +150,6 @@
     fetch(API + "/patients")
       .then((r) => r.json())
       .then((list) => {
-        const current = patientSelect.value;
         patientSelect.innerHTML = '<option value="">-- Select patient --</option>';
         list.forEach((p) => {
           const opt = document.createElement("option");
@@ -40,7 +157,6 @@
           opt.textContent = p.patient_id + (p.age != null ? " (age " + p.age + ")" : "");
           patientSelect.appendChild(opt);
         });
-        if (current) patientSelect.value = current;
       })
       .catch((err) => console.error("Load patients failed", err));
   }
@@ -61,317 +177,55 @@
         newPatientId.value  = "";
         newPatientAge.value = "";
         loadPatients();
-        setTimeout(() => { patientSelect.value = patientId; refreshResults(); }, 100);
+        patientSelect.value = patientId;
       })
       .catch((err) => alert(err.error || "Failed to create patient"));
   });
 
   // -------------------------------------------------------------------------
-  // Assessment state
-  //
-  // State machine per test:
-  //   idle → countdown (Start pressed) → running → idle (Stop / auto-stop)
-  //
-  // UPDRS score is always 0 (placeholder) until hardware sync via receive.py.
-  // Auto-stop triggers after INACTIVITY_TIMEOUT_S seconds with no hardware
-  // movement signal. Once hardware integration is complete, the 10-rep
-  // completion signal from the ESP32 will also trigger an auto-stop.
-  //
-  // Countdown: 3-second visual countdown before timing begins.
+  // Simulated test buttons (right hand only)
   // -------------------------------------------------------------------------
 
-  const COUNTDOWN_SECONDS    = 3;
-  const INACTIVITY_TIMEOUT_S = 60;   // auto-stop if no hardware signal for this long
-
-  const assessments = {
-    finger_taps: {
-      startBtn:    document.getElementById("startFinger"),
-      stopBtn:     document.getElementById("stopFinger"),
-      statusEl:    document.getElementById("statusFinger"),
-      countdownEl: document.getElementById("countdownFinger"),
-      label:       "Finger Tapping",
-    },
-    pronation_supination: {
-      startBtn:    document.getElementById("startPronation"),
-      stopBtn:     document.getElementById("stopPronation"),
-      statusEl:    document.getElementById("statusPronation"),
-      countdownEl: document.getElementById("countdownPronation"),
-      label:       "Pronation–Supination",
-    },
-  };
-
-  // Per-test timer handles
-  const state = {
-    finger_taps:          { phase: "idle", tickTimer: null, autoStopTimer: null, startTime: null, countdownTimer: null },
-    pronation_supination: { phase: "idle", tickTimer: null, autoStopTimer: null, startTime: null, countdownTimer: null },
-  };
-
-  // ---- status helpers ----
-
-  function showStatus(testType, message, style) {
-    const el = assessments[testType].statusEl;
-    el.textContent = message;
-    el.className   = "assessment-status" + (style ? " " + style : "");
-    el.hidden      = false;
-  }
-
-  function hideStatus(testType) {
-    const el = assessments[testType].statusEl;
-    el.hidden      = true;
-    el.textContent = "";
-    el.className   = "assessment-status";
-  }
-
-  function showCountdown(testType, n) {
-    const el = assessments[testType].countdownEl;
-    el.textContent = n > 0 ? n : "";
-    el.hidden      = n <= 0;
-  }
-
-  function hideCountdown(testType) {
-    const el = assessments[testType].countdownEl;
-    el.hidden      = true;
-    el.textContent = "";
-  }
-
-  // ---- button visibility ----
-
-  function setRunning(testType, running) {
-    const { startBtn, stopBtn } = assessments[testType];
-    const other = testType === "finger_taps" ? "pronation_supination" : "finger_taps";
-    if (running) {
-      startBtn.disabled = true;
-      stopBtn.disabled  = false;
-      stopBtn.hidden    = false;
-      assessments[other].startBtn.disabled = true;
-    } else {
-      startBtn.disabled = false;
-      stopBtn.disabled  = true;
-      stopBtn.hidden    = true;
-      assessments[other].startBtn.disabled = false;
-    }
-  }
-
-  // ---- timer helpers ----
-
-  function clearAllTimers(testType) {
-    const s = state[testType];
-    if (s.tickTimer)      { clearInterval(s.tickTimer);   s.tickTimer      = null; }
-    if (s.autoStopTimer)  { clearTimeout(s.autoStopTimer); s.autoStopTimer = null; }
-    if (s.countdownTimer) { clearInterval(s.countdownTimer); s.countdownTimer = null; }
-  }
-
-  // ---- countdown then run ----
-
-  function startCountdown(testType) {
-    const s = state[testType];
-    s.phase = "countdown";
-    let count = COUNTDOWN_SECONDS;
-    showCountdown(testType, count);
-    hideStatus(testType);
-
-    s.countdownTimer = setInterval(() => {
-      count--;
-      if (count > 0) {
-        showCountdown(testType, count);
-      } else {
-        clearInterval(s.countdownTimer);
-        s.countdownTimer = null;
-        hideCountdown(testType);
-        beginTest(testType);
-      }
-    }, 1000);
-  }
-
-  function beginTest(testType) {
-    const s       = state[testType];
-    s.phase       = "running";
-    s.startTime   = Date.now();
-
-    // Live elapsed tick
-    s.tickTimer = setInterval(() => {
-      const elapsed = Math.round((Date.now() - s.startTime) / 1000);
-      showStatus(testType, `Running… ${elapsed}s elapsed`);
-    }, 1000);
-    showStatus(testType, "Running… 0s elapsed");
-
-    // Inactivity auto-stop
-    s.autoStopTimer = setTimeout(() => {
-      finaliseTest(testType, "auto");
-    }, INACTIVITY_TIMEOUT_S * 1000);
-  }
-
-  // ---- stop / finalise ----
-
-  function finaliseTest(testType, reason) {
-    const s   = state[testType];
+  function addMockResult(testType) {
     const pid = getSelectedPatientId();
+    if (!pid) { alert("Select or create a patient first."); return; }
+    const updrs    = Math.floor(Math.random() * 5);
+    const duration = (5 + Math.random() * 15).toFixed(1);
+    const now      = new Date();
 
-    clearAllTimers(testType);
-    hideCountdown(testType);
-    s.phase = "idle";
-    setRunning(testType, false);
-
-    if (!pid) {
-      showStatus(testType, "Error: no patient selected.", "status-err");
-      return;
-    }
-
-    if (reason === "countdown_cancelled") {
-      hideStatus(testType);
-      return;
-    }
-
-    const durationMs = Date.now() - s.startTime;
-    const duration   = parseFloat((durationMs / 1000).toFixed(2));
-
-    if (duration < 0.5) {
-      showStatus(testType, "Test too short (< 0.5s) — not saved. Please retry.", "status-warn");
-      return;
-    }
-
-    const autoMsg = reason === "auto"
-      ? " (auto-stopped after inactivity)"
-      : "";
-
-    showStatus(testType, "Saving…");
-
-    const now = new Date();
     fetch(`${API}/patients/${encodeURIComponent(pid)}/tests`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         test_type:        testType,
-        updrs_score:      0,        // Placeholder — real score set via hardware ingest
-        duration_seconds: duration,
+        updrs_score:      updrs,
+        duration_seconds: parseFloat(duration),
         test_date:        now.toISOString().slice(0, 10),
         test_time:        now.toTimeString().slice(0, 8),
       }),
     })
-      .then((r) => { if (!r.ok) return r.json().then((d) => Promise.reject(d)); return r.json(); })
-      .then(() => {
-        showStatus(testType, `Saved — ${duration}s${autoMsg}. UPDRS score pending hardware sync.`, "status-ok");
-        // Clear the saved confirmation after 6 seconds so the box goes away
-        setTimeout(() => hideStatus(testType), 6000);
-        refreshResults();
-      })
-      .catch((err) => {
-        showStatus(testType, "Error saving: " + (err.error || "network error"), "status-err");
-      });
+      .then((r) => r.json())
+      .then(() => refreshResults())
+      .catch((err) => console.error("Add test failed", err));
   }
 
-  // ---- button handlers ----
-
-  function handleStart(testType) {
-    if (!getSelectedPatientId()) {
-      alert("Select or create a patient before starting a test.");
-      return;
-    }
-    setRunning(testType, true);
-    startCountdown(testType);
-  }
-
-  function handleStop(testType) {
-    const s = state[testType];
-    if (s.phase === "countdown") {
-      // Cancelled during countdown — abort cleanly
-      clearAllTimers(testType);
-      hideCountdown(testType);
-      s.phase = "idle";
-      setRunning(testType, false);
-      hideStatus(testType);
-      return;
-    }
-    finaliseTest(testType, "manual");
-  }
-
-  Object.keys(assessments).forEach((testType) => {
-    assessments[testType].startBtn.addEventListener("click", () => handleStart(testType));
-    assessments[testType].stopBtn .addEventListener("click", () => handleStop(testType));
-  });
-
-  // -------------------------------------------------------------------------
-  // Sortable table
-  // -------------------------------------------------------------------------
-
-  // sortState tracks the current column key and direction for the results table
-  const sortState = { key: "test_date", dir: 1 };   // dir: 1 = asc, -1 = desc
-
-  // Map th data-sort values to comparator functions
-  const comparators = {
-    test_type:        (a, b) => (a.test_type        || "").localeCompare(b.test_type        || ""),
-    updrs_score:      (a, b) => Number(a.updrs_score)      - Number(b.updrs_score),
-    duration_seconds: (a, b) => Number(a.duration_seconds) - Number(b.duration_seconds),
-    test_date:        (a, b) => {
-      const dtA = (a.test_date || "") + "T" + (a.test_time || "00:00:00");
-      const dtB = (b.test_date || "") + "T" + (b.test_time || "00:00:00");
-      return dtA < dtB ? -1 : dtA > dtB ? 1 : (a.id || 0) - (b.id || 0);
-    },
-    test_time: (a, b) => {
-      const dtA = (a.test_date || "") + "T" + (a.test_time || "00:00:00");
-      const dtB = (b.test_date || "") + "T" + (b.test_time || "00:00:00");
-      return dtA < dtB ? -1 : dtA > dtB ? 1 : (a.id || 0) - (b.id || 0);
-    },
-  };
-
-  // Called by refreshResults with the current raw tests array.
-  // Also called directly by th click handlers with the cached lastTests.
-  let lastTests = [];
-
-  function renderTable(tests) {
-    const sorted = tests.slice().sort((a, b) => {
-      const fn = comparators[sortState.key] || comparators.test_date;
-      return fn(a, b) * sortState.dir;
-    });
-
-    // Update header indicators
-    document.querySelectorAll("#resultsTable th[data-sort]").forEach((th) => {
-      const key = th.dataset.sort;
-      th.classList.toggle("sort-active", key === sortState.key);
-      if (key === sortState.key) {
-        th.dataset.sortDir = sortState.dir === 1 ? "asc" : "desc";
-      } else {
-        delete th.dataset.sortDir;
-      }
-    });
-
-    resultsTableBody.innerHTML = "";
-    sorted.forEach((t) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML =
-        "<td>" + (tableLabels[t.test_type] || t.test_type) + "</td>" +
-        "<td>" + Math.round(Number(t.updrs_score))          + "</td>" +
-        "<td>" + Number(t.duration_seconds).toFixed(1)      + "</td>" +
-        "<td>" + t.test_date                                + "</td>" +
-        "<td>" + (t.test_time || "")                        + "</td>";
-      resultsTableBody.appendChild(tr);
-    });
-  }
-
-  // Wire th click handlers once DOM is ready
-  document.querySelectorAll("#resultsTable th[data-sort]").forEach((th) => {
-    th.style.cursor = "pointer";
-    th.addEventListener("click", () => {
-      const key = th.dataset.sort;
-      if (sortState.key === key) {
-        sortState.dir *= -1;   // Toggle direction
-      } else {
-        sortState.key = key;
-        sortState.dir = 1;
-      }
-      renderTable(lastTests);
-    });
-  });
+  document.getElementById("startFinger")   .addEventListener("click", () => addMockResult("finger_taps"));
+  document.getElementById("startPronation").addEventListener("click", () => addMockResult("pronation_supination"));
 
   // -------------------------------------------------------------------------
   // Chart helpers
   // -------------------------------------------------------------------------
 
-  const tableLabels = {
+  const labels = {
     finger_taps:          "Finger Taps",
     pronation_supination: "Pronation-Supination",
   };
 
+  /**
+   * buildSeries(tests, testType)
+   * Returns { xLabels, scoreData } — one data point per test entry,
+   * sorted chronologically. Same-day entries get numbered labels.
+   */
   function buildSeries(tests, testType) {
     const relevant = tests
       .filter((t) => t.test_type === testType)
@@ -389,7 +243,9 @@
       const d = t.test_date || "?";
       dateCount[d] = (dateCount[d] || 0) + 1;
       let shortDate = d;
-      try { shortDate = new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" }); } catch (e) {}
+      try {
+        shortDate = new Date(d + "T12:00:00").toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      } catch (e) {}
       return { ...t, _shortDate: shortDate, _dateKey: d };
     });
 
@@ -403,27 +259,15 @@
     });
 
     return {
-      xLabels:      labeled.map((t) => t._label),
-      scoreData:    labeled.map((t) => Math.round(Number(t.updrs_score))),
-      durationData: labeled.map((t) => Number(t.duration_seconds).toFixed(1)),
+      xLabels:   labeled.map((t) => t._label),
+      scoreData: labeled.map((t) => Math.round(Number(t.updrs_score))),
     };
   }
 
-  function baseChartOptions(durationData) {
+  function baseChartOptions() {
     return {
       responsive:          true,
       maintainAspectRatio: false,
-      layout: { padding: { bottom: 8 } },
-      plugins: {
-        tooltip: {
-          callbacks: {
-            afterLabel: (ctx) => {
-              const dur = durationData && durationData[ctx.dataIndex];
-              return dur != null ? `Duration: ${dur}s` : "";
-            },
-          },
-        },
-      },
       scales: {
         y: {
           min:   0,
@@ -460,9 +304,8 @@
         }],
       },
       options: {
-        ...baseChartOptions(series.durationData),
+        ...baseChartOptions(),
         plugins: {
-          ...baseChartOptions(series.durationData).plugins,
           title:  { display: true, text: title, font: { size: 14, weight: "bold" } },
           legend: { display: false },
         },
@@ -483,6 +326,7 @@
       if (chartSingleWrap) chartSingleWrap.hidden = true;
       if (chartBothWrap)   chartBothWrap.hidden   = false;
       if (chartTitle)      chartTitle.textContent  = "Severity over time – both tests";
+
       chartFinger    = renderChart(resultsChartFinger,    "Finger Taps",          buildSeries(tests, "finger_taps"));
       chartPronation = renderChart(resultsChartPronation, "Pronation–Supination", buildSeries(tests, "pronation_supination"));
       return;
@@ -491,7 +335,7 @@
     if (chartSingleWrap) chartSingleWrap.hidden = false;
     if (chartBothWrap)   chartBothWrap.hidden   = true;
 
-    const title = tableLabels[mode] ? `${tableLabels[mode]} – severity over time` : "Severity over time";
+    const title = labels[mode] ? `${labels[mode]} – severity over time` : "Severity over time";
     if (chartTitle) chartTitle.textContent = title;
     chartSingle = renderChart(resultsChart, title, buildSeries(tests, mode));
   }
@@ -513,13 +357,22 @@
         if (tests.length === 0) {
           resultsPlaceholder.hidden = false;
           resultsContent.hidden     = true;
-          lastTests = [];
           return;
         }
         resultsPlaceholder.hidden = true;
         resultsContent.hidden     = false;
-        lastTests = tests;
-        renderTable(tests);
+
+        resultsTableBody.innerHTML = "";
+        tests.forEach((t) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML =
+            "<td>" + (labels[t.test_type] || t.test_type)  + "</td>" +
+            "<td>" + Math.round(Number(t.updrs_score))      + "</td>" +
+            "<td>" + t.duration_seconds                     + "</td>" +
+            "<td>" + t.test_date                            + "</td>";
+          resultsTableBody.appendChild(tr);
+        });
+
         renderCharts(tests);
       })
       .catch((err) => console.error("Load results failed", err));
