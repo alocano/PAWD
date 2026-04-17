@@ -10,82 +10,29 @@
 <body>
   <header>
     <h1>PAWD - Parkinson's Assistive Wearable Device</h1>
-    <p>Assessment and results for clinicians</p>
+    <p>Raw assessment results from the latest sensor log</p>
   </header>
 
   <main>
-    <!-- Patient section -->
     <section class="card">
-      <h2>Patient</h2>
-      <div class="patient-controls">
-        <label>Select or create patient</label>
-        <select id="patientSelect">
-          <option value="">-- Select patient --</option>
-        </select>
-        <div class="inline-form">
-          <input type="text" id="newPatientId" placeholder="Patient ID (e.g. patient1)" />
-          <input type="number" id="newPatientAge" placeholder="Age" min="1" />
-          <button type="button" id="createPatient">Create patient</button>
+      <div class="section-head">
+        <div>
+          <h2>Raw sensor data</h2>
+          <p>Rotations are plotted as a waveform with markers at y = 0. Taps are shown as dots over time.</p>
         </div>
       </div>
-    </section>
-
-    <!-- Start assessments -->
-    <section class="card">
-      <h2>Start assessments</h2>
-      <p>Start the UPDRS tests. Results are simulated for this prototype.</p>
-      <div class="assessments">
-        <div class="assessment-group">
-          <h3>Finger tapping</h3>
-          <p>Tap thumb and index finger together 10 times as fast as possible.</p>
-          <button type="button" id="startFinger" class="btn-start">Start</button>
-        </div>
-        <div class="assessment-group">
-          <h3>Pronation–supination</h3>
-          <p>Rotate wrist with straight arm 10 times.</p>
-          <button type="button" id="startPronation" class="btn-start">Start</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Raw sensor graph -->
-    <section class="card">
-      <h2>Raw sensor data</h2>
-      <p>Gyroscope readings (dps) over time. Dots mark detected rotations.</p>
       <div id="rawPlaceholder" class="placeholder">Loading sensor data...</div>
-      <div id="rawChartWrap" hidden>
-        <canvas id="rawChart"></canvas>
-      </div>
-    </section>
-
-    <!-- Results -->
-    <section class="card">
-      <h2>Assessment results</h2>
-      <p>Numerical and graphical UPDRS scores over time.</p>
-      <div id="resultsPlaceholder" class="placeholder">Select a patient and run tests to see results.</div>
-      <div id="resultsContent" class="results-content" hidden>
-
-        <div class="results-numeric">
-          <h3>Numerical scores</h3>
-          <table id="resultsTable">
-            <thead>
-              <tr>
-                <th>Test</th>
-                <th>UPDRS score (0–4)</th>
-                <th>Duration (s)</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="resultsTableBody"></tbody>
-          </table>
-        </div>
-
-        <div class="results-chart">
-          <div class="chart-header">
-            <h3 id="chartTitle">Severity over time</h3>
-            <label class="chart-mode">
-              Show:
-              <select id="chartMode">
+      <div id="rawContent" class="raw-content" hidden>
+        <div class="chart-block">
+          <div class="chart-toolbar">
+            <div class="chart-copy">
+              <h3 id="graphTitle">Pronation / supination</h3>
+              <p id="graphDescription">Gyroscope trace with rotation markers aligned to the baseline for a cleaner view.</p>
+            </div>
+            <label class="test-mode" for="testMode">
+              Test:
+              <select id="testMode">
+                <option value="" selected>Select test</option>
                 <option value="finger_taps">Finger Taps</option>
                 <option value="pronation_supination">Pronation-Supination</option>
                 <option value="both">Both</option>
@@ -93,22 +40,38 @@
             </label>
           </div>
 
-          <div id="chartSingleWrap">
-            <canvas id="resultsChart"></canvas>
+          <div id="chartSingleWrap" class="chart-frame chart-frame-large" hidden>
+            <canvas id="testChart"></canvas>
           </div>
 
-          <div id="chartBothWrap" hidden>
-            <div class="chart-box">
-              <h4>Finger Taps</h4>
-              <canvas id="resultsChartFinger"></canvas>
+          <div id="chartBothWrap" class="both-graphs" hidden>
+            <div class="chart-frame chart-box">
+              <canvas id="rotationChart"></canvas>
             </div>
-            <div class="chart-box">
-              <h4>Pronation–Supination</h4>
-              <canvas id="resultsChartPronation"></canvas>
+            <div class="chart-frame chart-box">
+              <canvas id="tapChart"></canvas>
             </div>
           </div>
         </div>
 
+        <div class="summary-grid" aria-label="Test summary">
+          <div class="summary-card summary-card-tap">
+            <span>Finger Taps</span>
+            <strong id="rawSummaryTaps">0</strong>
+          </div>
+          <div class="summary-card summary-card-tap-duration">
+            <span>Finger Taps Duration</span>
+            <strong id="rawSummaryTapDuration">0.0 s</strong>
+          </div>
+          <div class="summary-card summary-card-rotation">
+            <span>Pronation Rotations</span>
+            <strong id="rawSummaryRotations">0</strong>
+          </div>
+          <div class="summary-card summary-card-rotation-duration">
+            <span>Pronation Duration</span>
+            <strong id="rawSummaryRotationDuration">0.0 s</strong>
+          </div>
+        </div>
       </div>
     </section>
   </main>

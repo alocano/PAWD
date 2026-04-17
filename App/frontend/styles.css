@@ -4,160 +4,167 @@
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
-  padding: 1rem;
-  max-width: 900px;
+  padding: 1.25rem;
+  max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
+  line-height: 1.5;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  color: #1f2937;
 }
 header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 header h1 {
   margin: 0 0 0.25rem 0;
-  font-size: 1.5rem;
+  font-size: clamp(1.65rem, 2.6vw, 2.1rem);
+  letter-spacing: -0.02em;
 }
 header p {
   margin: 0;
-  color: #555;
-}
-.card {
-  border: 1px solid #ccc;
-  padding: 1rem;
-  margin-bottom: 1rem;
-}
-.card h2 {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.2rem;
-}
-.card h3 {
-  margin: 0.5rem 0;
+  color: #4b5563;
   font-size: 1rem;
 }
-.patient-controls label {
-  display: block;
-  margin-bottom: 0.25rem;
+.card {
+  border: 1px solid #d9dee7;
+  border-radius: 14px;
+  padding: 1.1rem;
+  margin-bottom: 1rem;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
-#patientSelect {
-  margin-bottom: 0.5rem;
-  min-width: 200px;
-  padding: 0.35rem;
+.card h2 {
+  margin: 0;
+  font-size: 1.35rem;
 }
-.inline-form {
+.card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.section-head {
   display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  align-items: flex-start;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+  margin-bottom: 0.9rem;
 }
-.inline-form input,
-.inline-form select {
-  padding: 0.35rem;
+.section-head p,
+.chart-copy p {
+  margin: 0.25rem 0 0;
+  color: #4b5563;
+  font-size: 0.98rem;
 }
-.assessments {
-  display: flex;
-  flex-direction: column;
+.raw-content {
+  display: grid;
   gap: 1rem;
 }
-.assessment-group {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid #eee;
+.chart-block {
+  display: grid;
+  gap: 0.6rem;
 }
-.assessment-group:last-child {
-  border-bottom: none;
+.chart-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.8rem;
+  flex-wrap: wrap;
 }
-.btn-start {
-  margin-right: 0.5rem;
-  margin-top: 0.25rem;
-  padding: 0.5rem 0.75rem;
-  cursor: pointer;
+.chart-copy h3 {
+  margin: 0;
+}
+.test-mode {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #374151;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.test-mode select {
+  border: 1px solid #cfd6e3;
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  background: #fff;
+  color: #111827;
+  font-size: 0.95rem;
+}
+.chart-frame {
+  position: relative;
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fbfdff;
+}
+.chart-frame-large {
+  height: 380px;
+}
+.both-graphs {
+  display: grid;
+  gap: 0.75rem;
+}
+.chart-box {
+  height: 300px;
+}
+.chart-frame canvas {
+  position: absolute;
+  inset: 0;
+}
+.chart-frame[hidden],
+.both-graphs[hidden] {
+  display: none;
+}
+.summary-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.summary-card {
+  flex: 1 1 180px;
+  min-width: 180px;
+  padding: 0.85rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-left-width: 4px;
+  border-radius: 12px;
+  background: #f9fafb;
+}
+.summary-card-tap,
+.summary-card-tap-duration {
+  border-left-color: #10b981;
+}
+.summary-card-rotation,
+.summary-card-rotation-duration {
+  border-left-color: #ef4444;
+}
+.summary-card span {
+  display: block;
+  color: #6b7280;
+  font-size: 0.88rem;
+  margin-bottom: 0.2rem;
+}
+.summary-card strong {
+  font-size: 1.45rem;
+  color: #111827;
 }
 .placeholder {
-  color: #666;
+  color: #6b7280;
   font-style: italic;
+  padding: 0.4rem 0;
 }
-.results-content {
-  margin-top: 0.5rem;
+.placeholder,
+.summary-card,
+.card,
+.chart-frame {
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
-.results-numeric {
-  margin-bottom: 1rem;
+.card:focus-within,
+.chart-frame:focus-within {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
-.results-numeric table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.results-numeric th,
-.results-numeric td {
-  border: 1px solid #ddd;
-  padding: 0.4rem 0.6rem;
-  text-align: left;
-}
-.results-numeric th {
-  background: #f5f5f5;
-}
-.results-chart {
-  width: 100%;
-}
-.chart-header {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  margin-bottom: 0.75rem;
-}
-.chart-mode {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-.chart-mode select {
-  padding: 0.35rem;
-}
-
-/* Single chart: position:relative + explicit height lets Chart.js fill the
-   container correctly when maintainAspectRatio is false.
-   The [hidden] selector overrides the explicit display value so the HTML
-   hidden attribute actually works. */
-#chartSingleWrap {
-  position: relative;
-  width: 100%;
-  height: 340px;
-}
-#chartSingleWrap[hidden] {
-  display: none;
-}
-
-/* Both-chart wrapper stacks two boxed charts vertically.
-   display:flex must be overridden by [hidden] or the boxes stay visible
-   even when the attribute is set. */
-#chartBothWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-}
-#chartBothWrap[hidden] {
-  display: none;
-}
-
-/* Each test-type chart lives in a fixed-height card so Chart.js has a
-   real pixel height to render into. */
-.chart-box {
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  padding: 0.75rem 1rem 1rem;
-  background: #fafafa;
-  position: relative;
-  height: 320px;
-}
-.chart-box h4 {
-  margin: 0 0 0.4rem 0;
-  font-size: 0.95rem;
-  color: #333;
-}
-
-/* Raw sensor chart */
-#rawChartWrap {
-  position: relative;
-  width: 100%;
-  height: 340px;
-  margin-top: 0.5rem;
+.test-mode select:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }

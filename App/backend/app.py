@@ -27,7 +27,9 @@ def raw_data():
     Returns:
     {
       "samples": [{ "t", "dps" }, ...],
-      "rotations": [{ "t", "rot_num", "amplitude", "duration" }, ...]
+            "rotations": [{ "t", "rot_num", "amplitude", "duration" }, ...],
+      "taps": [{ "t", "tap_num", "adc" }, ...],
+      "duration_seconds": 0.0
     }
     """
     if not os.path.exists(RAW_DATA_FILE):
@@ -35,16 +37,19 @@ def raw_data():
 
     sample_pattern = re.compile(r"\[SAMPLE\]\s+#(\d+)/(\d+)\s+(-?[\d.]+)\s+dps")
     rot_pattern = re.compile(r"\[ROT\]\s+#(\d+)\s+T:([\d.]+)s\s+A:(-?[\d.]+)")
+    tap_pattern = re.compile(r"\[TAP\]\s+#(\d+)\s+T:([\d.]+)\s*(ms|s)?\s+Adc:([\d.]+)", re.IGNORECASE)
 
     blocks = []
     current_samples = []
     current_total = None
+    taps = []
 
     with open(RAW_DATA_FILE, "r", encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
             ms = sample_pattern.match(line)
             mr = rot_pattern.match(line)
+            mt = tap_pattern.match(line)
             if ms:
                 idx = int(ms.group(1))
                 total = int(ms.group(2))
@@ -61,6 +66,16 @@ def raw_data():
                 })
                 current_samples = []
                 current_total = None
+            elif mt:
+                tap_time = float(mt.group(2))
+                time_unit = (mt.group(3) or "s").lower()
+                if time_unit == "ms":
+                    tap_time /= 1000.0
+                taps.append({
+                    "tap_num": int(mt.group(1)),
+                    "t": tap_time,
+                    "adc": float(mt.group(4)),
+                })
 
     samples_out = []
     rotations_out = []
@@ -74,7 +89,6 @@ def raw_data():
         for idx_1based, dps in block["samples"]:
             t = round(cursor + (idx_1based - 0.5) * interval, 4)
             samples_out.append({"t": t, "dps": dps})
-
         cursor += T
 
         rotations_out.append({
@@ -84,7 +98,28 @@ def raw_data():
             "duration": T,
         })
 
-    return jsonify({"samples": samples_out, "rotations": rotations_out})
+    taps_out = sorted(taps, key=lambda item: (item["t"], item["tap_num"]))
+
+    # Some logs label tap times with "s" but values are actually milliseconds.
+    if taps_out and max(item["t"] for item in taps_out) > 300:
+        for item in taps_out:
+            item["t"] = round(item["t"] / 1000.0, 4)
+
+    max_times = []
+    if samples_out:
+        max_times.append(max(item["t"] for item in samples_out))
+    if rotations_out:
+        max_times.append(max(item["t"] for item in rotations_out))
+    if taps_out:
+        max_times.append(max(item["t"] for item in taps_out))
+    duration_seconds = round(max(max_times), 4) if max_times else 0.0
+
+    return jsonify({
+        "samples": samples_out,
+        "rotations": rotations_out,
+        "taps": taps_out,
+        "duration_seconds": duration_seconds,
+    })
 
 
 @app.route("/")

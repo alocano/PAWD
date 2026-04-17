@@ -21,8 +21,7 @@ Basic prototype with no hardware communication.
 
 ## What’s in the prototype
 
-- **Patient**: Create/select patient (ID, age, gender). Stored in SQLite.
-- **Start assessments**: Buttons to “start” Finger Tapping and Pronation–Supination for right hand. In this prototype, clicking adds a mock result (random UPDRS 0–4, duration, today’s date and time).
-- **Results**: Table of all test results (test type, UPDRS score, duration, date) and a bar chart comparing left vs right hand scores per test.
+- **Raw sensor data**: Plots the gyroscope waveform with rotation markers and a separate tap timeline.
+- **Summary**: Shows tap count, rotation count, and total test duration below the charts.
 
-Data is stored in `backend/pawd.db` (SQLite).
+The app reads from `backend/mydata.txt`; it does not store patient records in this prototype.
