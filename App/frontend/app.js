@@ -41,18 +41,18 @@
     if (mode === "finger_taps") {
       return {
         title: "Finger taps",
-        description: "Each dot marks a finger tap event at y = 0 over time.",
+        description: "Each dot marks a finger tap detected by the sensor.",
       };
     }
     if (mode === "both") {
       return {
-        title: "Both tests",
+        title: "Finger taps and Pronation-Supination Tests",
         description: "Displays separate Pronation-Supination and Finger Taps graphs.",
       };
     }
     return {
-      title: "Pronation / supination",
-      description: "Gyroscope trace with rotation markers aligned to the baseline for a cleaner view.",
+      title: "Pronation-Supination",
+      description: "Gyroscope trace with dot markers for each full rotation detected.",
     };
   }
 
@@ -138,7 +138,7 @@
     if (rotations.length > 0) {
       datasets.push({
         kind: "rotation",
-        label: "Rotation detected",
+        label: "Full Rotation detected",
         data: spreadDuplicateMarkers(rotations, (rotation) => rotation.t, 0.12),
         type: "scatter",
         pointStyle: "circle",
@@ -160,7 +160,7 @@
 
     return [{
       kind: "tap",
-      label: "Tap events",
+      label: "Tap Detected",
       data: spreadDuplicateMarkers(taps, (tap) => tap.t, 0.14),
       type: "scatter",
       pointStyle: "circle",
@@ -219,7 +219,6 @@
                 return [
                   `Tap #${tap.tap_num}`,
                   `Time: ${formatSeconds(tap.t)}`,
-                  `ADC: ${tap.adc}`,
                 ];
               }
               return `${ctx.parsed.y.toFixed(1)} dps at ${formatSeconds(ctx.parsed.x)}`;
