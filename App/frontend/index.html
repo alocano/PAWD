@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🌷PAWD - Parkinson's Assistive Wearable Device</title>
+  <title>PAWD - Parkinson's Assistive Wearable Device</title>
+
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
-    <h1>PAWD - Parkinson's Assistive Wearable Device</h1>
-    <p>Raw assessment results from the latest sensor log</p>
+    <div class="header-inner">
+      <img src="logo.png" alt="PAWD logo" class="header-logo">
+      <div class="header-text">
+        <h1>Parkinson's Assistive Wearable Device</h1>
+      </div>
+    </div>
   </header>
 
   <main>
@@ -21,6 +28,15 @@
           <p>Rotations are plotted as a waveform with markers at y = 0. Taps are shown as dots over time.</p>
         </div>
       </div>
+
+      <!-- File selector: populated dynamically from /api/files -->
+      <div class="file-selector-row">
+        <label for="fileSelect" class="file-selector-label">Data file:</label>
+        <select id="fileSelect" class="file-selector-select">
+          <option value="">Loading files...</option>
+        </select>
+      </div>
+
       <div id="rawPlaceholder" class="placeholder">Loading sensor data...</div>
       <div id="rawContent" class="raw-content" hidden>
         <div class="chart-block">
@@ -44,12 +60,19 @@
             <canvas id="testChart"></canvas>
           </div>
 
+          <!-- "No data available" message shown inside the chart area -->
+          <div id="noDataMessage" class="no-data-message" hidden>
+            No data available to graph
+          </div>
+
           <div id="chartBothWrap" class="both-graphs" hidden>
             <div class="chart-frame chart-box">
               <canvas id="rotationChart"></canvas>
+              <div id="noDataRotation" class="no-data-message" hidden>No rotation data available to graph</div>
             </div>
             <div class="chart-frame chart-box">
               <canvas id="tapChart"></canvas>
+              <div id="noDataTap" class="no-data-message" hidden>No taps data available to graph</div>
             </div>
           </div>
         </div>
