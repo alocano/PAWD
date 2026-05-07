@@ -11,6 +11,9 @@
 // ─────────────────────────────────────────────
 static const uint8_t COORDINATOR_MAC[6] = {0x20, 0xE7, 0xC8, 0xAB, 0xED, 0x24};
 // Esp32-s3 Wroom Mac : 0xDC, 0xB4, 0xD9, 0x05, 0x25, 0xF8
+//0x20, 0xE7, 0xC8, 0xAB, 0xED, 0x24
+//0x68, 0xFE, 0x71, 0xF9, 0xAD0 ,0x40
+
 // ─────────────────────────────────────────────
 //  State machine  (STATE_SLEEP removed)
 // ─────────────────────────────────────────────
@@ -133,7 +136,7 @@ void loop() {
         //  FSR — block on each press, transmit immediately after each
         // ─────────────────────────────────────────────────────────────
         case STATE_READ_FSR: {
-            Serial.println("In FSR");
+            Serial.println("IN FSR");
             uint16_t target = (s_sample_req > 0 &&
                                s_sample_req <= FSR_MAX_SAMPLES)
                               ? s_sample_req : FSR_TARGET_COUNT;
@@ -170,7 +173,7 @@ void loop() {
         //  IMU — non-blocking tick loop
         // ─────────────────────────────────────────────────────────────
         case STATE_READ_LSM: {
-            Serial.println("In IMU");
+            Serial.println("IN IMU");
             // Initialise IMU on first entry; bail out if not found
             if (!imu_is_ready()) {
                 if (!imu_init()) {
@@ -233,7 +236,7 @@ void loop() {
 
         // ── Generic single transmit (error / ping paths) ──────────────
         case STATE_TRANSMIT:
-            Serial.println("In Transmit");
+            Serial.println("IN Transmitt");
             _send(&s_tx_packet);
             s_state = STATE_IDLE;   // was STATE_SLEEP
             break;

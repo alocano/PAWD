@@ -1,7 +1,7 @@
 #include "espnow_handler.h"
 #include <string.h>
 
-static uint8_t                  s_coordinator_mac[6] ;
+static uint8_t                  s_coordinator_mac[6];
 static espnow_cmd_callback_t    s_cmd_callback   = nullptr;
 static espnow_send_callback_t   s_send_callback  = nullptr;
 
@@ -63,6 +63,7 @@ bool espnow_init(const uint8_t coordinator_mac[6],
     s_send_callback = on_send_done;
 
     WiFi.mode(WIFI_STA);
+    delay(10);
     WiFi.disconnect();
     esp_wifi_set_channel(COMMS_CHANNEL, WIFI_SECOND_CHAN_NONE);
 

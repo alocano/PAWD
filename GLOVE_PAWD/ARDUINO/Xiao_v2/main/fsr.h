@@ -9,10 +9,10 @@
 //  Override via build_flags in platformio.ini
 // ─────────────────────────────────────────────
 #ifndef FSR_PIN
-  #define FSR_PIN           A1
+  #define FSR_PIN          2
 #endif
 #ifndef FSR_THRESHOLD
-  #define FSR_THRESHOLD     500
+  #define FSR_THRESHOLD     200
 #endif
 #ifndef FSR_DEBOUNCE_MS
   #define FSR_DEBOUNCE_MS   200

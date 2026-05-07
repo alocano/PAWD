@@ -10,10 +10,10 @@
 //  I2C pins (XIAO ESP32-S3)
 // ─────────────────────────────────────────────
 #ifndef IMU_SDA_PIN
-  #define IMU_SDA_PIN   4
+  #define IMU_SDA_PIN   5
 #endif
 #ifndef IMU_SCL_PIN
-  #define IMU_SCL_PIN   5
+  #define IMU_SCL_PIN   6
 #endif
 
 // ─────────────────────────────────────────────
