@@ -32,8 +32,9 @@
 // ─────────────────────────────────────────────
 //  XIAO sensor-node MAC  (update to match your board)
 // ─────────────────────────────────────────────
-uint8_t xiaoAddress[] = { 0x9C, 0x13, 0x9E, 0xAB, 0xD5, 0xA0};
-
+uint8_t xiaoAddress[] = {0xDC,0xB4,0xD9,0x3B,0x47,0x4C};
+//0x9C, 0x13, 0x9E, 0xAB, 0xD5, 0xA0
+//0x1c, 0xdb, 0xd4, 0x76, 0x1a, 0xd4
 // ─────────────────────────────────────────────
 //  Peripherals
 // ─────────────────────────────────────────────
@@ -252,8 +253,8 @@ void OnDataRecv(const uint8_t *mac,
 void printMenu() {
     if (!isMenuDrawn) {
         tft.drawFastHLine(0,  0, 160, ST77XX_YELLOW);
-        printLine(2, 0,  2, ST77XX_YELLOW, ST77XX_BLACK, "Parkison Test", 0, false, selection);
-        printLine(2, 0, 22, ST77XX_YELLOW, ST77XX_BLACK, "    Menu",      0, false, selection);
+        printLine(2, 0,  2, ST77XX_YELLOW, ST77XX_BLACK, "  Parkinson", 0, false, selection);
+        printLine(2, 0, 22, ST77XX_YELLOW, ST77XX_BLACK, "  Test Menu",      0, false, selection);
         tft.drawFastHLine(0, 43, 160, ST77XX_WHITE);
         tft.drawFastHLine(0, 44, 160, ST77XX_WHITE);
 
@@ -261,7 +262,7 @@ void printMenu() {
         selection = abs(count % 2);
 
         if (selection != lastSelection) {
-            printLine(2, 20, 46, ST77XX_GREEN, ST77XX_BLACK, "Prob", 0, true, selection);
+            printLine(2, 20, 46, ST77XX_GREEN, ST77XX_BLACK, "Rotations", 0, true, selection);
             printLine(2, 20, 86, 0xFD20,       ST77XX_BLACK, "Taps", 1, true, selection);
             lastSelection = selection;
         }
