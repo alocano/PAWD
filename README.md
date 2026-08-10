@@ -24,6 +24,21 @@ decisions, clinical relevance, and IRB compliance steps.
 ### Why PAWD?
 Patients, especially older patients in more rural or remote areas, struggle to access the care they need, and for patients with Parkinson's Disease, this can impact some aspects of everyday life. PAWD was made to address this gap, originally designed as an affordable at-home device that will allow doctors to view symptom severity trends more often over time and assist patients with communication and reminders without worrying about when their next visit will be.
 
+## Demo
+
+<table>
+  <tr>
+    <td align="center"><b>Glove Device</b></td>
+    <td align="center"><b>Web Dashboard</b></td>
+    <td align="center"><b>PAWD Caster</b></td>
+  </tr>
+  <tr>
+    <td><img src="Docs/pawd_glove_inner.jpg" width="400"></td>
+    <td><img src="Docs/pawd_web_demo.gif" width="400"></td>
+    <td><img src="Docs/pawd_caster.jpg" width="400"></td>
+  </tr>
+</table>
+
 ### Limitations
 This project faced a lot of issues due to time and money as a mostly self-funded university project:
 - **Limited Validation**: Testing was conducted in an IRB approved environment, providing early real-world signal but is not sufficient for validation against existing PD assessment methods (e.g. UPDRS, MOCA, other wearables)
