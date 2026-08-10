@@ -6,7 +6,6 @@
   <title>PAWD - Parkinson's Assistive Wearable Device</title>
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
@@ -21,6 +20,7 @@
   </header>
 
   <main>
+    <!-- ── Raw Sensor Data Card ─────────────────────────────────────────── -->
     <section class="card">
       <div class="section-head">
         <div>
@@ -29,7 +29,6 @@
         </div>
       </div>
 
-      <!-- File selector: populated dynamically from /api/files -->
       <div class="file-selector-row">
         <label for="fileSelect" class="file-selector-label">Data file:</label>
         <select id="fileSelect" class="file-selector-select">
@@ -60,7 +59,6 @@
             <canvas id="testChart"></canvas>
           </div>
 
-          <!-- "No data available" message shown inside the chart area -->
           <div id="noDataMessage" class="no-data-message" hidden>
             No data available to graph
           </div>
@@ -96,6 +94,146 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ── MDS-UPDRS Analysis Card ──────────────────────────────────────── -->
+    <section class="card">
+      <div class="section-head">
+        <div>
+          <h2>MDS-UPDRS Motor Analysis</h2>
+          <p>
+            Computed scores and extracted features for Part 3 items 3.4 (Finger Tapping)
+            and 3.6 (Pronation-Supination). Scores range from 0 (normal) to 4 (severe).
+          </p>
+        </div>
+      </div>
+
+      <div id="analysisPlaceholder" class="placeholder">Load a data file to compute scores.</div>
+
+      <div id="analysisContent" hidden>
+
+        <!-- Score summary row — big badges for quick read -->
+        <div class="score-summary-row">
+
+          <!-- 3.4 Finger Tapping badge -->
+          <div class="score-badge-card">
+            <div class="score-badge-label">MDS-UPDRS 3.4 — Finger Tapping</div>
+            <div class="score-badge-row">
+              <div id="tappingScoreBadge" class="score-badge">—</div>
+              <div>
+                <div id="tappingScoreLabel" class="score-severity-label">—</div>
+                <div class="score-badge-subtext">out of 4</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.6 Pronation-Supination badge -->
+          <div class="score-badge-card">
+            <div class="score-badge-label">MDS-UPDRS 3.6 — Pronation-Supination</div>
+            <div class="score-badge-row">
+              <div id="prosupScoreBadge" class="score-badge">—</div>
+              <div>
+                <div id="prosupScoreLabel" class="score-severity-label">—</div>
+                <div class="score-badge-subtext">out of 4</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /.score-summary-row -->
+
+        <!-- Feature detail panels -->
+        <div class="feature-panels">
+
+          <!-- 3.4 Finger Tapping features -->
+          <div class="feature-panel feature-panel-tap">
+            <h3 class="feature-panel-title">3.4 Finger Tapping — Feature Breakdown</h3>
+            <table class="feature-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Value</th>
+                  <th>What it measures</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Tap Rate</td>
+                  <td id="featTapRate" class="feature-value">—</td>
+                  <td class="feature-desc">Speed (primary score driver). Clinical standard: ≥ 3.0 taps/s = normal.</td>
+                </tr>
+                <tr>
+                  <td>Mean ITI</td>
+                  <td id="featMeanITI" class="feature-value">—</td>
+                  <td class="feature-desc">Average gap between taps (inter-tap interval). Longer = slower.</td>
+                </tr>
+                <tr>
+                  <td>ITI Rhythm (CV)</td>
+                  <td id="featCvITI" class="feature-value">—</td>
+                  <td class="feature-desc">Rhythm consistency. CV &gt; 0.25 flags irregular tapping.</td>
+                </tr>
+                <tr>
+                  <td>Norm. Amplitude</td>
+                  <td id="featNormAmp" class="feature-value">—</td>
+                  <td class="feature-desc">ADC tap strength vs calibrated baseline. &lt; 60 % = reduced amplitude.</td>
+                </tr>
+                <tr>
+                  <td>Hesitation Count</td>
+                  <td id="featHesitationCount" class="feature-value">—</td>
+                  <td class="feature-desc">Gaps &gt; mean ITI + 2 SD (or 600 ms). ≥ 2 adds a score modifier.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 3.6 Pronation-Supination features -->
+          <div class="feature-panel feature-panel-rot">
+            <h3 class="feature-panel-title">3.6 Pronation-Supination — Feature Breakdown</h3>
+            <table class="feature-table">
+              <thead>
+                <tr>
+                  <th>Feature</th>
+                  <th>Value</th>
+                  <th>What it measures</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Cycle Frequency</td>
+                  <td id="featCycleFreq" class="feature-value">—</td>
+                  <td class="feature-desc">Full pro-sup cycles per second (primary driver). Normal ≥ 1.5 Hz.</td>
+                </tr>
+                <tr>
+                  <td>Peak Angular Velocity</td>
+                  <td id="featMeanPAV" class="feature-value">—</td>
+                  <td class="feature-desc">Mean amplitude of each half-swing. Proxy for range of motion.</td>
+                </tr>
+                <tr>
+                  <td>Cycle Rhythm (CV)</td>
+                  <td id="featCvCycle" class="feature-value">—</td>
+                  <td class="feature-desc">Timing regularity. CV &gt; 0.30 flags rhythm breakdown.</td>
+                </tr>
+                <tr>
+                  <td>Arrest Count</td>
+                  <td id="featArrestCount" class="feature-value">—</td>
+                  <td class="feature-desc">Stops ≥ 200 ms below deadband (15 dps). ≥ 2 adds a score modifier.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div><!-- /.feature-panels -->
+
+        <!-- Score scale legend -->
+        <div class="score-legend">
+          <span class="legend-title">Score scale:</span>
+          <span class="legend-chip legend-0">0 Normal</span>
+          <span class="legend-chip legend-1">1 Mild</span>
+          <span class="legend-chip legend-2">2 Moderate</span>
+          <span class="legend-chip legend-3">3 Mod-Severe</span>
+          <span class="legend-chip legend-4">4 Severe</span>
+        </div>
+
+      </div><!-- /#analysisContent -->
     </section>
   </main>
 

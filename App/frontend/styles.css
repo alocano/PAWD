@@ -273,3 +273,192 @@ header p {
   border-color: #93c5fd;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MDS-UPDRS ANALYSIS SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Score badge summary row ── */
+.score-summary-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+/* Each badge card (one per test) */
+.score-badge-card {
+  flex: 1 1 260px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.score-badge-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.score-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+/* The large numeric score circle */
+.score-badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  background: #9ca3af;         /* neutral grey until JS sets the real color */
+  flex-shrink: 0;
+  transition: background 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.score-severity-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.score-badge-subtext {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 0.1rem;
+}
+
+/* ── Feature panel grid ── */
+.feature-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.feature-panel {
+  border: 1px solid #e5e7eb;
+  border-top-width: 3px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Left accent colours matching the chart colours */
+.feature-panel-tap {
+  border-top-color: #10b981;   /* green — matches tap chart */
+}
+
+.feature-panel-rot {
+  border-top-color: #3b82f6;   /* blue  — matches gyro trace */
+}
+
+.feature-panel-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
+  padding: 0.6rem 0.9rem;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  margin: 0;
+}
+
+/* Feature table inside each panel */
+.feature-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.feature-table thead tr {
+  background: #f3f4f6;
+}
+
+.feature-table th {
+  text-align: left;
+  padding: 0.45rem 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.82rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.feature-table tbody tr {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.1s;
+}
+
+.feature-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.feature-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.feature-table td {
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  color: #374151;
+}
+
+/* The computed value column — monospace, prominent */
+.feature-value {
+  font-family: "Menlo", "Consolas", "Courier New", monospace;
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  min-width: 110px;
+}
+
+/* Description column — muted, wraps freely */
+.feature-desc {
+  color: #6b7280;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ── Score scale legend strip ── */
+.score-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 0 0.1rem;
+  font-size: 0.82rem;
+}
+
+.legend-title {
+  font-weight: 600;
+  color: #6b7280;
+  margin-right: 0.2rem;
+}
+
+.legend-chip {
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+.legend-0 { background: #10b981; }
+.legend-1 { background: #84cc16; }
+.legend-2 { background: #f59e0b; }
+.legend-3 { background: #f97316; }
+.legend-4 { background: #ef4444; }

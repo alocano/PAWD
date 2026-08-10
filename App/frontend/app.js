@@ -6,24 +6,48 @@
   let tapChart       = null;
   let latestRawData  = null;
 
-  const rawPlaceholder           = document.getElementById("rawPlaceholder");
-  const rawContent               = document.getElementById("rawContent");
-  const rawSummaryTaps           = document.getElementById("rawSummaryTaps");
-  const rawSummaryTapDuration    = document.getElementById("rawSummaryTapDuration");
-  const rawSummaryRotations      = document.getElementById("rawSummaryRotations");
+  // ── Raw-data DOM refs ───────────────────────────────────────────────────────
+  const rawPlaceholder             = document.getElementById("rawPlaceholder");
+  const rawContent                 = document.getElementById("rawContent");
+  const rawSummaryTaps             = document.getElementById("rawSummaryTaps");
+  const rawSummaryTapDuration      = document.getElementById("rawSummaryTapDuration");
+  const rawSummaryRotations        = document.getElementById("rawSummaryRotations");
   const rawSummaryRotationDuration = document.getElementById("rawSummaryRotationDuration");
-  const testCanvas               = document.getElementById("testChart");
-  const rotationCanvas           = document.getElementById("rotationChart");
-  const tapCanvas                = document.getElementById("tapChart");
-  const chartSingleWrap          = document.getElementById("chartSingleWrap");
-  const chartBothWrap            = document.getElementById("chartBothWrap");
-  const testMode                 = document.getElementById("testMode");
-  const graphTitle               = document.getElementById("graphTitle");
-  const graphDescription         = document.getElementById("graphDescription");
-  const fileSelect               = document.getElementById("fileSelect");
-  const noDataMessage            = document.getElementById("noDataMessage");
-  const noDataRotation           = document.getElementById("noDataRotation");
-  const noDataTap                = document.getElementById("noDataTap");
+  const testCanvas                 = document.getElementById("testChart");
+  const rotationCanvas             = document.getElementById("rotationChart");
+  const tapCanvas                  = document.getElementById("tapChart");
+  const chartSingleWrap            = document.getElementById("chartSingleWrap");
+  const chartBothWrap              = document.getElementById("chartBothWrap");
+  const testMode                   = document.getElementById("testMode");
+  const graphTitle                 = document.getElementById("graphTitle");
+  const graphDescription           = document.getElementById("graphDescription");
+  const fileSelect                 = document.getElementById("fileSelect");
+  const noDataMessage              = document.getElementById("noDataMessage");
+  const noDataRotation             = document.getElementById("noDataRotation");
+  const noDataTap                  = document.getElementById("noDataTap");
+
+  // ── Analysis DOM refs ───────────────────────────────────────────────────────
+  const analysisPlaceholder  = document.getElementById("analysisPlaceholder");
+  const analysisContent      = document.getElementById("analysisContent");
+
+  // Score badges
+  const tappingScoreBadge    = document.getElementById("tappingScoreBadge");
+  const tappingScoreLabel    = document.getElementById("tappingScoreLabel");
+  const prosupScoreBadge     = document.getElementById("prosupScoreBadge");
+  const prosupScoreLabel     = document.getElementById("prosupScoreLabel");
+
+  // Tapping feature cells
+  const featTapRate          = document.getElementById("featTapRate");
+  const featMeanITI          = document.getElementById("featMeanITI");
+  const featCvITI            = document.getElementById("featCvITI");
+  const featNormAmp          = document.getElementById("featNormAmp");
+  const featHesitationCount  = document.getElementById("featHesitationCount");
+
+  // Pro-sup feature cells
+  const featCycleFreq        = document.getElementById("featCycleFreq");
+  const featMeanPAV          = document.getElementById("featMeanPAV");
+  const featCvCycle          = document.getElementById("featCvCycle");
+  const featArrestCount      = document.getElementById("featArrestCount");
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -47,7 +71,7 @@
     if (mode === "finger_taps") {
       return {
         title: "Finger taps",
-        description: "Each dot marks a finger tap detected by the sensor.                 ",
+        description: "Each dot marks a finger tap detected by the sensor.",
       };
     }
     if (mode === "both") {
@@ -119,6 +143,36 @@
     return Math.max(sampleMax, rotationMax);
   }
 
+  // ── Score color + label helpers ────────────────────────────────────────────
+
+  /**
+   * Returns the CSS color for a given MDS-UPDRS score (0–4).
+   * 0 = green (normal) → 4 = red (severe)
+   */
+  function scoreColor(score) {
+    const palette = ["#10b981", "#84cc16", "#f59e0b", "#f97316", "#ef4444"];
+    return palette[Math.min(Math.max(score, 0), 4)];
+  }
+
+  /**
+   * Returns the clinical severity label for a given score (0–4).
+   */
+  function scoreLabel(score) {
+    const labels = ["Normal", "Mild", "Moderate", "Mod-Severe", "Severe"];
+    return labels[Math.min(Math.max(score, 0), 4)];
+  }
+
+  /**
+   * Applies score, color, and label to a badge + label element pair.
+   */
+  function applyScoreBadge(badgeEl, labelEl, score) {
+    if (!badgeEl || !labelEl || score == null) return;
+    badgeEl.textContent        = score;
+    badgeEl.style.background   = scoreColor(score);
+    labelEl.textContent        = scoreLabel(score);
+    labelEl.style.color        = scoreColor(score);
+  }
+
   // ── Dataset builders ───────────────────────────────────────────────────────
 
   function buildPronationDatasets(data) {
@@ -185,14 +239,6 @@
 
   // ── Chart options ──────────────────────────────────────────────────────────
 
-  /**
-   * Build Chart.js options.
-   *
-   * Changes vs original:
-   * - xMin is forced to 0 so the axis always starts from 0 s (items 5 & 6).
-   * - Tap tooltips now include the ADC value and "since last tap" (item 7).
-   * - Rotation tooltips unchanged.
-   */
   function chartOptions(isTapOnly, allTapsSorted) {
     return {
       responsive:          true,
@@ -201,7 +247,7 @@
       scales: {
         x: {
           type:  "linear",
-          min:   0,           // always start x-axis at 0 s
+          min:   0,
           title: { display: true, text: "Time (s)", font: { size: 14 } },
           ticks: {
             callback: (value) => `${Number(value).toFixed(1)}s`,
@@ -247,7 +293,6 @@
                   `ADC: ${tap.adc}`,
                 ];
 
-                // "Since last tap" — find the previous tap in the sorted list
                 if (allTapsSorted && allTapsSorted.length > 1) {
                   const idx = allTapsSorted.findIndex((t) => t.tap_num === tap.tap_num);
                   if (idx > 0) {
@@ -262,7 +307,6 @@
                 return lines;
               }
 
-              // Gyro trace
               return `${ctx.parsed.y.toFixed(1)} dps at ${formatSeconds(ctx.parsed.x)}`;
             },
           },
@@ -322,7 +366,6 @@
     rotationChart = destroyChart(rotationChart);
     tapChart      = destroyChart(tapChart);
 
-    // Hide all no-data messages initially
     if (noDataMessage)  noDataMessage.hidden  = true;
     if (noDataRotation) noDataRotation.hidden = true;
     if (noDataTap)      noDataTap.hidden      = true;
@@ -334,7 +377,6 @@
       return;
     }
 
-    // Pre-sort taps by time for "since last tap" calculation
     const allTapsSorted = Array.isArray(data.taps)
       ? [...data.taps].sort((a, b) => a.t - b.t)
       : [];
@@ -351,7 +393,6 @@
           options: chartOptions(false, allTapsSorted),
         });
       } else {
-        // Show "no data" overlay inside the rotation chart frame
         showNoData(noDataRotation, rotationCanvas);
       }
 
@@ -377,9 +418,7 @@
     const isTapOnly  = mode === "finger_taps";
 
     if (datasets.length === 0) {
-      // Show "no data" overlay centred in the single chart frame
       showNoData(noDataMessage, testCanvas);
-      // Also make the wrapper visible so the overlay has somewhere to live
       chartSingleWrap.hidden = false;
       return;
     }
@@ -392,20 +431,16 @@
     });
   }
 
-  // ── Data loading ───────────────────────────────────────────────────────────
+  // ── Raw data loading ───────────────────────────────────────────────────────
 
-  /**
-   * Load sensor data for the currently selected file.
-   * Passes ?file=<name> to the backend so it knows which .txt to parse.
-   */
   function loadRawChart() {
     const selectedFile = fileSelect ? fileSelect.value : "";
     const url          = selectedFile
       ? `${API}/raw-data?file=${encodeURIComponent(selectedFile)}`
       : `${API}/raw-data`;
 
-    rawPlaceholder.hidden = false;
-    rawContent.hidden     = true;
+    rawPlaceholder.hidden      = false;
+    rawContent.hidden          = true;
     rawPlaceholder.textContent = "Loading sensor data...";
 
     fetch(url)
@@ -458,11 +493,124 @@
       });
   }
 
+  // ── Features / analysis loading ────────────────────────────────────────────
+
   /**
-   * Fetch the list of available .txt files from /api/files and populate
-   * the file selector <select>.  Once loaded, trigger an initial data load
-   * for the first file in the list (or mydata.txt if present).
+   * Fetches /api/features for the currently selected file,
+   * then populates both the score badges and the feature breakdown tables.
+   *
+   * Called whenever a new file is selected (alongside loadRawChart).
    */
+  function loadFeatures() {
+    const selectedFile = fileSelect ? fileSelect.value : "";
+    const url          = selectedFile
+      ? `${API}/features?file=${encodeURIComponent(selectedFile)}`
+      : `${API}/features`;
+
+    // Reset to loading state
+    if (analysisPlaceholder) {
+      analysisPlaceholder.hidden      = false;
+      analysisPlaceholder.textContent = "Computing MDS-UPDRS scores...";
+    }
+    if (analysisContent) analysisContent.hidden = true;
+
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((data) => {
+        if (!data || typeof data !== "object" || data.error) {
+          if (analysisPlaceholder) {
+            analysisPlaceholder.textContent =
+              data?.error || "Analysis unavailable for this file.";
+          }
+          return;
+        }
+
+        // ── Populate Finger Tapping (3.4) ──────────────────────────────────
+        const tp  = data.tapping  || {};
+        const tpf = tp.features   || {};
+
+        // Score badge
+        if (typeof tp.score === "number") {
+          applyScoreBadge(tappingScoreBadge, tappingScoreLabel, tp.score);
+        }
+
+        // Feature cells — convert to human-friendly units
+        if (featTapRate) {
+          featTapRate.textContent = tpf.tap_rate != null
+            ? `${tpf.tap_rate.toFixed(2)} taps/s`
+            : "—";
+        }
+        if (featMeanITI) {
+          // mean_iti_s is in seconds — show as milliseconds for readability
+          featMeanITI.textContent = tpf.mean_iti_s != null
+            ? `${(tpf.mean_iti_s * 1000).toFixed(0)} ms`
+            : "—";
+        }
+        if (featCvITI) {
+          featCvITI.textContent = tpf.cv_iti != null
+            ? tpf.cv_iti.toFixed(3)
+            : "—";
+        }
+        if (featNormAmp) {
+          // norm_amplitude is 0–1 — show as a percentage
+          featNormAmp.textContent = tpf.norm_amplitude != null
+            ? `${(tpf.norm_amplitude * 100).toFixed(1)}%`
+            : "—";
+        }
+        if (featHesitationCount) {
+          featHesitationCount.textContent = tpf.hesitation_count != null
+            ? String(tpf.hesitation_count)
+            : "—";
+        }
+
+        // ── Populate Pronation-Supination (3.6) ────────────────────────────
+        const ps  = data.prosup  || {};
+        const psf = ps.features  || {};
+
+        // Score badge
+        if (typeof ps.score === "number") {
+          applyScoreBadge(prosupScoreBadge, prosupScoreLabel, ps.score);
+        }
+
+        // Feature cells
+        if (featCycleFreq) {
+          featCycleFreq.textContent = psf.cycle_freq_hz != null
+            ? `${psf.cycle_freq_hz.toFixed(3)} Hz`
+            : "—";
+        }
+        if (featMeanPAV) {
+          featMeanPAV.textContent = psf.mean_pav_dps != null
+            ? `${psf.mean_pav_dps.toFixed(1)} dps`
+            : "—";
+        }
+        if (featCvCycle) {
+          featCvCycle.textContent = psf.cv_cycle_times != null
+            ? psf.cv_cycle_times.toFixed(3)
+            : "—";
+        }
+        if (featArrestCount) {
+          featArrestCount.textContent = psf.arrest_count != null
+            ? String(psf.arrest_count)
+            : "—";
+        }
+
+        // Reveal the analysis section
+        if (analysisPlaceholder) analysisPlaceholder.hidden = true;
+        if (analysisContent)     analysisContent.hidden     = false;
+      })
+      .catch((err) => {
+        if (analysisPlaceholder) {
+          analysisPlaceholder.textContent = "Could not load analysis data.";
+        }
+        console.error("Features load failed", err);
+      });
+  }
+
+  // ── File list loading ──────────────────────────────────────────────────────
+
   function loadFileList() {
     fetch(`${API}/files`)
       .then((r) => {
@@ -477,8 +625,8 @@
         fileSelect.innerHTML = "";
 
         if (files.length === 0) {
-          const opt    = document.createElement("option");
-          opt.value    = "";
+          const opt       = document.createElement("option");
+          opt.value       = "";
           opt.textContent = "No data files found";
           fileSelect.appendChild(opt);
           rawPlaceholder.textContent = "No data files found in the backend directory.";
@@ -486,23 +634,23 @@
         }
 
         files.forEach((filename) => {
-          const opt    = document.createElement("option");
-          opt.value    = filename;
-          // Strip the .txt extension for a cleaner label
+          const opt       = document.createElement("option");
+          opt.value       = filename;
           opt.textContent = filename.replace(/\.txt$/i, "");
           fileSelect.appendChild(opt);
         });
 
-        // Prefer mydata.txt as the default selection if it exists
-        const preferred = files.find((f) => f === "mydata.txt") || files[0];
+        const preferred  = files.find((f) => f === "mydata.txt") || files[0];
         fileSelect.value = preferred;
 
+        // Load raw chart AND features for the initial file
         loadRawChart();
+        loadFeatures();
       })
       .catch((err) => {
         console.error("Could not load file list", err);
-        // Fall back to loading the default file
         loadRawChart();
+        loadFeatures();
       });
   }
 
@@ -516,12 +664,13 @@
 
   if (fileSelect) {
     fileSelect.addEventListener("change", function () {
-      // Destroy existing charts before reloading so canvas contexts are clean
+      // Destroy charts and reload everything for the new file
       activeChart   = destroyChart(activeChart);
       rotationChart = destroyChart(rotationChart);
       tapChart      = destroyChart(tapChart);
       latestRawData = null;
       loadRawChart();
+      loadFeatures();   // recompute analysis for the newly selected file
     });
   }
 
