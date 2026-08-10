@@ -42,6 +42,7 @@ Patients, especially older patients in more rural or remote areas, struggle to a
 ### Limitations
 This project faced a lot of issues due to time and money as a mostly self-funded university project:
 - **Limited Validation**: Testing was conducted in an IRB approved environment, providing early real-world signal but is not sufficient for validation against existing PD assessment methods (e.g. UPDRS, MOCA, other wearables)
+- **Small Sample Size**: As mentioned before, we had a small sample size (2 participants) and this resulted in being unable to effectively create a scoring system based on the UPDRS scale or would provide meaningful feedback on its own.
 - **Hardware limitations**: A common problem that arose was effective hardware for our tests, specifically for the finger taps test. As we shifted to a force sensitive resistor, we were able to find something sensitive enough for the test, but not large enough to account for things such as tap location, varying hand size, etc.
 - **Wearability**: The current design only covers the right hand, not accounting for a realistic clinical setting in which a patient will need to test on both hands.
 ### Future Implementations
